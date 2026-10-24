@@ -278,6 +278,7 @@ def test_base_opts_youtube_player_clients_and_proxy() -> None:
     assert "youtube" in opts["extractor_args"]
     assert "player_client" in opts["extractor_args"]["youtube"]
     clients = opts["extractor_args"]["youtube"]["player_client"]
+    assert "android" in clients
     assert "default" in clients
     assert "-tv" in clients
     assert "web_embedded" in clients

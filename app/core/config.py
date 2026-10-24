@@ -35,13 +35,13 @@ class Settings:
     )
     COOKIES_FILE: str | None = os.getenv("COOKIES_FILE", None)
 
-    # YouTube player clients fallback sequence
+    # YouTube player clients fallback sequence (android client first avoids web botguard / SABR format stripping on cloud IPs)
     YOUTUBE_PLAYER_CLIENTS: list[str] = field(
         default_factory=lambda: [
             c.strip()
             for c in os.getenv(
                 "YOUTUBE_PLAYER_CLIENTS",
-                "default,-tv,web_safari,web_embedded",
+                "android,default,-tv,web_safari,web_embedded",
             ).split(",")
             if c.strip()
         ]

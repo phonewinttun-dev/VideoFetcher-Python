@@ -386,15 +386,25 @@ class YTClient:
                     if format_id.startswith("video-"):
                         h = format_id.replace("video-", "").replace("p", "")
                         opts["format"] = (
-                            f"bestvideo[height<={h}][ext=mp4]+bestaudio[ext=m4a]/"
-                            f"bestvideo[height<={h}]+bestaudio/"
+                            f"bestvideo*[height<={h}][ext=mp4]+bestaudio[ext=m4a]/"
+                            f"bestvideo*[height<={h}]+bestaudio/"
                             f"best[height<={h}][ext=mp4]/"
-                            f"best[height<={h}]/best"
+                            f"best[height<={h}]/"
+                            f"bestvideo*+bestaudio/best"
                         )
                     else:
-                        opts["format"] = f"{format_id}+bestaudio[ext=m4a]/{format_id}+bestaudio/{format_id}/best"
+                        opts["format"] = (
+                            f"{format_id}+bestaudio[ext=m4a]/"
+                            f"{format_id}+bestaudio/"
+                            f"{format_id}/"
+                            f"bestvideo*+bestaudio/best"
+                        )
                 else:
-                    opts["format"] = "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best"
+                    opts["format"] = (
+                        "bestvideo*[ext=mp4]+bestaudio[ext=m4a]/"
+                        "bestvideo*+bestaudio/"
+                        "bestvideo*+bestaudio/best"
+                    )
 
             try:
                 with yt_dlp.YoutubeDL(opts) as ydl:
