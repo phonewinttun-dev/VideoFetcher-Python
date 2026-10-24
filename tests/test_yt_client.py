@@ -20,6 +20,15 @@ def test_validate_url() -> None:
     assert validate_url("") is False
     assert validate_url(None) is False  # type: ignore
 
+    # SSRF & Private IP rejection checks
+    assert validate_url("http://127.0.0.1:10000/api/health") is False
+    assert validate_url("http://localhost:8000") is False
+    assert validate_url("http://169.254.169.254/latest/meta-data") is False
+    assert validate_url("http://10.0.0.1/admin") is False
+    assert validate_url("http://192.168.1.1/secret") is False
+    assert validate_url("http://0.0.0.0/") is False
+    assert validate_url("http://server.local/video") is False
+
 
 def test_sanitize_filename() -> None:
     raw = 'Hello / World : Video * Test ? "Nice" <One> | Yeah!'
@@ -89,6 +98,10 @@ def test_base_opts_youtube_bot_bypass_and_mp4() -> None:
     # YouTube JS challenge and signature solving options
     assert "remote_components" in opts
     assert "ejs:github" in opts["remote_components"]
+
+    # File size limit and socket timeout for Render stability
+    assert opts["max_filesize"] == settings.MAX_FILE_SIZE_MB * 1024 * 1024
+    assert opts["socket_timeout"] == 30
 
     # MP4 Output Enforcement when FFmpeg is present
     if client.ffmpeg_location:

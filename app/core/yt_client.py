@@ -1,6 +1,8 @@
 import contextlib
+import ipaddress
 import re
 import shutil
+import socket
 import uuid
 from pathlib import Path
 from typing import Any, Generator
@@ -21,13 +23,58 @@ def sanitize_filename(filename: str) -> str:
     return cleaned or "download"
 
 
+def is_private_ip(ip_str: str) -> bool:
+    """Check if an IP string is private, loopback, link-local, multicast, or reserved."""
+    try:
+        ip = ipaddress.ip_address(ip_str)
+        return (
+            ip.is_private
+            or ip.is_loopback
+            or ip.is_link_local
+            or ip.is_reserved
+            or ip.is_multicast
+            or ip.is_unspecified
+        )
+    except ValueError:
+        return False
+
+
 def validate_url(url: str) -> bool:
-    """Validate if the given string is a valid HTTP/HTTPS URL."""
+    """Validate if the given string is a valid HTTP/HTTPS URL and not a private/SSRF target."""
     if not url or not isinstance(url, str):
         return False
     try:
         parsed = urlparse(url.strip())
-        return parsed.scheme in ("http", "https") and bool(parsed.netloc)
+        if parsed.scheme not in ("http", "https") or not parsed.netloc:
+            return False
+
+        hostname = parsed.hostname
+        if not hostname:
+            return False
+
+        hostname_lower = hostname.lower()
+        if hostname_lower in ("localhost", "0.0.0.0", "::1") or hostname_lower.endswith(
+            (".localhost", ".local", ".internal")
+        ):
+            return False
+
+        # If hostname is a direct IP address
+        if is_private_ip(hostname):
+            return False
+
+        # Resolve hostname to block DNS rebinding or internal domain names pointing to private IPs
+        try:
+            addr_info = socket.getaddrinfo(hostname, None)
+            for res in addr_info:
+                sockaddr = res[4]
+                ip_str = sockaddr[0]
+                if is_private_ip(ip_str):
+                    return False
+        except socket.gaierror:
+            # If resolution fails (e.g. offline unit testing or unresolvable domain), allow through
+            pass
+
+        return True
     except Exception:
         return False
 
@@ -72,6 +119,8 @@ class YTClient:
             "noplaylist": True,
             "user_agent": user_agent or settings.DEFAULT_USER_AGENT,
             "remote_components": ["ejs:github"],
+            "max_filesize": settings.MAX_FILE_SIZE_MB * 1024 * 1024,
+            "socket_timeout": 30,
         }
 
         # Auto-detect available JS runtime for YouTube signature challenge solving
@@ -288,37 +337,46 @@ class YTClient:
                 else:
                     opts["format"] = "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best"
 
-            with yt_dlp.YoutubeDL(opts) as ydl:
-                info = ydl.extract_info(url, download=True)
-                if not info:
-                    raise DownloadError("Download failed: No information returned.")
+            try:
+                with yt_dlp.YoutubeDL(opts) as ydl:
+                    info = ydl.extract_info(url, download=True)
+                    if not info:
+                        raise DownloadError("Download failed: No information returned.")
 
-                # Locate the downloaded file
-                target_filename = ydl.prepare_filename(info)
-                expected_path = Path(target_filename)
+                    # Locate the downloaded file
+                    target_filename = ydl.prepare_filename(info)
+                    expected_path = Path(target_filename)
 
-                # If postprocessed (e.g. mp3 conversion or mp4 remux)
-                if is_audio:
-                    if format_id == "audio-m4a" or not has_ffmpeg:
-                        expected_path = expected_path.with_suffix(".m4a")
-                    else:
-                        expected_path = expected_path.with_suffix(".mp3")
-                elif has_ffmpeg:
-                    expected_path = expected_path.with_suffix(".mp4")
+                    # If postprocessed (e.g. mp3 conversion or mp4 remux)
+                    if is_audio:
+                        if format_id == "audio-m4a" or not has_ffmpeg:
+                            expected_path = expected_path.with_suffix(".m4a")
+                        else:
+                            expected_path = expected_path.with_suffix(".mp3")
+                    elif has_ffmpeg:
+                        expected_path = expected_path.with_suffix(".mp4")
 
-                # If not found directly, check by prefix in TEMP_DIR
-                if not expected_path.exists():
-                    matches = list(settings.TEMP_DIR.glob(f"{download_id}_*"))
-                    if matches:
-                        expected_path = matches[0]
-                    else:
-                        raise DownloadError("Downloaded file could not be located on server.")
+                    # If not found directly, check by prefix in TEMP_DIR
+                    if not expected_path.exists():
+                        matches = list(settings.TEMP_DIR.glob(f"{download_id}_*"))
+                        if matches:
+                            expected_path = matches[0]
+                        else:
+                            raise DownloadError("Downloaded file could not be located on server.")
 
-                # Prepare a clean human-readable download filename
-                title = sanitize_filename(info.get("title") or "download")
-                display_filename = f"{title}{expected_path.suffix}"
+                    # Prepare a clean human-readable download filename
+                    title = sanitize_filename(info.get("title") or "download")
+                    display_filename = f"{title}{expected_path.suffix}"
 
-                return expected_path, display_filename
+                    return expected_path, display_filename
+            except Exception:
+                # Clean up any partial files or artifacts created for this download
+                for part in settings.TEMP_DIR.glob(f"{download_id}_*"):
+                    try:
+                        part.unlink()
+                    except OSError:
+                        pass
+                raise
 
 
 yt_client = YTClient()
