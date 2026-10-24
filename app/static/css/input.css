@@ -21,7 +21,7 @@
   }
 }
 
-/* Apple Fluid Tactile & Interaction Primitives */
+/* Apple Fluid Tactile & Interaction Primitives (Dark Mode Native) */
 
 /* Instant pointer-down press feedback (Apple Design §1 & §4) */
 .btn-press {
@@ -35,16 +35,8 @@
   transform: scale(0.98);
 }
 
-/* Translucent Apple Glass Surface (Apple Design §12) */
+/* Translucent Apple Dark Glass Surface */
 .apple-glass {
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(0, 0, 0, 0.07);
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.8), 0 1px 3px 0 rgba(0, 0, 0, 0.02);
-}
-
-.dark .apple-glass {
   background: rgba(18, 18, 22, 0.82);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
@@ -52,14 +44,8 @@
   box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.06), 0 1px 3px 0 rgba(0, 0, 0, 0.4);
 }
 
-/* Minimalist Bento Surface */
+/* Minimalist Dark Bento Surface */
 .apple-surface {
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.07);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
-}
-
-.dark .apple-surface {
   background: #141418;
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
@@ -101,20 +87,13 @@
 
 /* Apple HUD / Dynamic Island Toast */
 .apple-toast {
-  background: rgba(24, 24, 28, 0.92);
-  color: #ffffff;
-  backdrop-filter: blur(24px) saturate(190%);
-  -webkit-backdrop-filter: blur(24px) saturate(190%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.35), inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
-  transition: transform 220ms var(--apple-spring), opacity 180ms var(--apple-ease);
-}
-
-.dark .apple-toast {
   background: rgba(28, 28, 32, 0.94);
   color: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.14);
   box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.6), inset 0 1px 0 0 rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  transition: transform 220ms var(--apple-spring), opacity 180ms var(--apple-ease);
 }
 
 /* Hover lift restricted to pointer-accurate devices */

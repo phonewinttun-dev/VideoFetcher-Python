@@ -18,9 +18,6 @@
   // DOM Elements
   const el = {
     html: document.documentElement,
-    themeToggle: document.getElementById("theme-toggle"),
-    themeIconSun: document.getElementById("theme-icon-sun"),
-    themeIconMoon: document.getElementById("theme-icon-moon"),
     urlInput: document.getElementById("url-input"),
     pasteBtn: document.getElementById("paste-btn"),
     extractBtn: document.getElementById("extract-btn"),
@@ -117,32 +114,10 @@
   }
 
   // -------------------------------------------------------------
-  // 2. Theme Management (Dark / Light)
+  // 2. Theme Enforcement (Pure Dark Mode)
   // -------------------------------------------------------------
   function initTheme() {
-    const saved = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const isDark = saved === "dark" || (!saved && prefersDark);
-
-    applyTheme(isDark);
-
-    el.themeToggle?.addEventListener("click", () => {
-      const willBeDark = !el.html.classList.contains("dark");
-      applyTheme(willBeDark);
-      localStorage.setItem("theme", willBeDark ? "dark" : "light");
-    });
-  }
-
-  function applyTheme(isDark) {
-    if (isDark) {
-      el.html.classList.add("dark");
-      el.themeIconSun?.classList.remove("hidden");
-      el.themeIconMoon?.classList.add("hidden");
-    } else {
-      el.html.classList.remove("dark");
-      el.themeIconSun?.classList.add("hidden");
-      el.themeIconMoon?.classList.remove("hidden");
-    }
+    el.html.classList.add("dark");
   }
 
   // -------------------------------------------------------------
@@ -267,14 +242,14 @@
 
     if (isVideo) {
       el.modeVideoBtn.className =
-        "btn-press flex-1 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all text-neutral-900 dark:text-white bg-white dark:bg-neutral-800 shadow-2xs";
+        "btn-press flex-1 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all text-white bg-neutral-800 shadow-2xs";
       el.modeAudioBtn.className =
-        "btn-press flex-1 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white";
+        "btn-press flex-1 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all text-neutral-400 hover:text-white";
     } else {
       el.modeAudioBtn.className =
-        "btn-press flex-1 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all text-neutral-900 dark:text-white bg-white dark:bg-neutral-800 shadow-2xs";
+        "btn-press flex-1 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all text-white bg-neutral-800 shadow-2xs";
       el.modeVideoBtn.className =
-        "btn-press flex-1 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white";
+        "btn-press flex-1 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all text-neutral-400 hover:text-white";
     }
 
     renderFormatOptions();
@@ -303,12 +278,12 @@
       const isSelected = fmt.format_id === state.selectedFormatId;
       const card = document.createElement("button");
       card.type = "button";
-      // Staggered cascade entrance & Apple Bento card
+      // Staggered cascade entrance & Apple Bento card (Dark native)
       card.className =
         "cascade-item btn-press p-3 rounded-xl border text-left flex items-center justify-between transition-all " +
         (isSelected
-          ? "border-neutral-900 dark:border-white bg-neutral-900/[0.04] dark:bg-white/[0.08] text-neutral-950 dark:text-white ring-1 ring-neutral-900 dark:ring-white shadow-2xs"
-          : "border-black/[0.06] dark:border-white/[0.08] hover:border-black/[0.15] dark:hover:border-white/[0.16] bg-white dark:bg-white/[0.02] text-neutral-700 dark:text-neutral-300");
+          ? "border-white bg-white/[0.08] text-white ring-1 ring-white shadow-2xs"
+          : "border-white/[0.08] hover:border-white/[0.16] bg-white/[0.02] text-neutral-300");
 
       card.style.animationDelay = `${index * 35}ms`;
 
@@ -316,18 +291,18 @@
         <div class="flex items-center gap-2.5 min-w-0">
           <div class="w-4 h-4 rounded-full border flex items-center justify-center flex-shrink-0 ${
             isSelected
-              ? "border-neutral-900 dark:border-white bg-neutral-900 dark:bg-white"
-              : "border-neutral-300 dark:border-neutral-600"
+              ? "border-white bg-white"
+              : "border-neutral-600"
           }">
-            ${isSelected ? '<div class="w-1.5 h-1.5 rounded-full bg-white dark:bg-neutral-900"></div>' : ''}
+            ${isSelected ? '<div class="w-1.5 h-1.5 rounded-full bg-neutral-900"></div>' : ''}
           </div>
           <div class="space-y-0.5 truncate">
-            <div class="text-xs sm:text-[13px] font-semibold">${fmt.label}</div>
-            <div class="text-[11px] text-neutral-500 dark:text-neutral-400 font-tabular">${fmt.resolution} &bull; .${fmt.ext.toUpperCase()}</div>
+            <div class="text-xs sm:text-[13px] font-semibold text-white">${fmt.label}</div>
+            <div class="text-[11px] text-neutral-400 font-tabular">${fmt.resolution} &bull; .${fmt.ext.toUpperCase()}</div>
           </div>
         </div>
         <div class="text-right flex-shrink-0 pl-2">
-          <span class="text-xs font-mono font-medium text-neutral-600 dark:text-neutral-300 font-tabular">${formatBytes(fmt.filesize_approx)}</span>
+          <span class="text-xs font-mono font-medium text-neutral-300 font-tabular">${formatBytes(fmt.filesize_approx)}</span>
         </div>
       `;
 
