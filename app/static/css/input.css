@@ -2,51 +2,91 @@
 
 @layer base {
   :root {
-    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --apple-ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --apple-spring: cubic-bezier(0.32, 0.72, 0, 1);
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   }
 
   body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", -apple-system, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  .font-tabular {
+    font-variant-numeric: tabular-nums;
   }
 }
 
-/* Emil Kowalski Design Tokens & Polish */
+/* Apple Fluid Tactile & Interaction Primitives */
 
-/* Tactile button press feedback */
+/* Instant pointer-down press feedback (Apple Design §1 & §4) */
 .btn-press {
-  transition: transform 160ms var(--ease-out), opacity 160ms var(--ease-out), filter 160ms var(--ease-out), background-color 160ms var(--ease-out);
+  transition: transform 140ms var(--apple-ease), opacity 140ms var(--apple-ease), background-color 140ms var(--apple-ease), border-color 140ms var(--apple-ease), box-shadow 140ms var(--apple-ease);
   will-change: transform;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .btn-press:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
 }
 
-/* Natural entrance from scale(0.95), never scale(0) */
-@keyframes scaleEnter {
+/* Translucent Apple Glass Surface (Apple Design §12) */
+.apple-glass {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.8), 0 1px 3px 0 rgba(0, 0, 0, 0.02);
+}
+
+.dark .apple-glass {
+  background: rgba(18, 18, 22, 0.82);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.06), 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+}
+
+/* Minimalist Bento Surface */
+.apple-surface {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.dark .apple-surface {
+  background: #141418;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Apple Smooth Scale Entrance from scale(0.97) */
+@keyframes appleScaleEnter {
   from {
     opacity: 0;
-    transform: scale(0.95);
+    transform: scale(0.97) translateY(4px);
   }
   to {
     opacity: 1;
-    transform: scale(1);
+    transform: scale(1) translateY(0);
   }
 }
 
 .scale-enter {
-  animation: scaleEnter 200ms var(--ease-out) forwards;
+  animation: appleScaleEnter 240ms var(--apple-ease) forwards;
   transform-origin: center;
 }
 
-/* Staggered list cascade */
-@keyframes cascadeIn {
+/* Apple Staggered Reveal Animation */
+@keyframes appleCascadeIn {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -56,34 +96,38 @@
 
 .cascade-item {
   opacity: 0;
-  animation: cascadeIn 220ms var(--ease-out) forwards;
+  animation: appleCascadeIn 220ms var(--apple-ease) forwards;
 }
 
-/* Surface depth with subtle 1px highlight border */
-.surface-card {
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.07);
+/* Apple HUD / Dynamic Island Toast */
+.apple-toast {
+  background: rgba(24, 24, 28, 0.92);
+  color: #ffffff;
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.35), inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
+  transition: transform 220ms var(--apple-spring), opacity 180ms var(--apple-ease);
 }
 
-.surface-card-dark {
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.04);
+.dark .apple-toast {
+  background: rgba(28, 28, 32, 0.94);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.6), inset 0 1px 0 0 rgba(255, 255, 255, 0.18);
 }
 
 /* Hover lift restricted to pointer-accurate devices */
 @media (hover: hover) and (pointer: fine) {
   .hover-lift {
-    transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out);
+    transition: transform 160ms var(--apple-ease), box-shadow 160ms var(--apple-ease);
   }
   .hover-lift:hover {
     transform: translateY(-1px);
   }
 }
 
-/* Sonner-style interruptible toast transition */
-.toast-item {
-  transition: transform 220ms var(--ease-out), opacity 220ms var(--ease-out);
-}
-
-/* Respect user's reduced motion preferences */
+/* Accessibility: Strict reduced motion compliance */
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
     animation-duration: 0.01ms !important;

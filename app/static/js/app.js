@@ -24,6 +24,7 @@
     urlInput: document.getElementById("url-input"),
     pasteBtn: document.getElementById("paste-btn"),
     extractBtn: document.getElementById("extract-btn"),
+    extractBtnIcon: document.getElementById("extract-btn-icon"),
     extractBtnText: document.getElementById("extract-btn-text"),
     extractBtnSpinner: document.getElementById("extract-btn-spinner"),
     extractForm: document.getElementById("extract-form"),
@@ -59,28 +60,28 @@
   };
 
   // -------------------------------------------------------------
-  // 1. Toast Notification System (Sonner Principles)
+  // 1. Toast Notification System (Apple HUD / Dynamic Island Style)
   // -------------------------------------------------------------
   function showToast(message, type = "info", duration = 3500) {
     if (!el.toastContainer) return;
 
     const toast = document.createElement("div");
     toast.className =
-      "toast-item pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl border text-xs sm:text-sm font-medium shadow-lg backdrop-blur-md transition-all " +
+      "apple-toast pointer-events-auto flex items-center gap-2.5 px-4 py-2.5 rounded-full text-xs sm:text-[13px] font-medium transition-all " +
       (type === "error"
-        ? "bg-rose-50/95 dark:bg-rose-950/90 text-rose-900 dark:text-rose-200 border-rose-200 dark:border-rose-900/50"
+        ? "border-rose-500/30 text-rose-200"
         : type === "success"
-        ? "bg-emerald-50/95 dark:bg-emerald-950/90 text-emerald-900 dark:text-emerald-200 border-emerald-200 dark:border-emerald-900/50"
-        : "bg-white/95 dark:bg-slate-900/90 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-800");
+        ? "border-emerald-500/30 text-emerald-200"
+        : "border-white/15 text-neutral-200");
 
     const icon = document.createElement("span");
     icon.className = "flex-shrink-0";
     if (type === "error") {
-      icon.innerHTML = `<svg class="w-4 h-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+      icon.innerHTML = `<svg class="w-4 h-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
     } else if (type === "success") {
-      icon.innerHTML = `<svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`;
+      icon.innerHTML = `<svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`;
     } else {
-      icon.innerHTML = `<svg class="w-4 h-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+      icon.innerHTML = `<svg class="w-4 h-4 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
     }
 
     const text = document.createElement("span");
@@ -88,7 +89,7 @@
     text.textContent = message;
 
     const closeBtn = document.createElement("button");
-    closeBtn.className = "btn-press text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5";
+    closeBtn.className = "btn-press text-neutral-400 hover:text-white p-0.5";
     closeBtn.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`;
 
     toast.appendChild(icon);
@@ -104,7 +105,7 @@
 
     const dismiss = () => {
       toast.style.opacity = "0";
-      toast.style.transform = "translateY(8px) scale(0.95)";
+      toast.style.transform = "translateY(8px) scale(0.96)";
       setTimeout(() => toast.remove(), 220);
     };
 
@@ -236,7 +237,8 @@
   function setExtractLoading(isLoading) {
     state.isLoading = isLoading;
     if (el.extractBtn) el.extractBtn.disabled = isLoading;
-    if (el.extractBtnText) el.extractBtnText.textContent = isLoading ? "Fetching..." : "Fetch Info";
+    if (el.extractBtnText) el.extractBtnText.textContent = isLoading ? "Loading..." : "Download";
+    if (el.extractBtnIcon) el.extractBtnIcon.classList.toggle("hidden", isLoading);
     if (el.extractBtnSpinner) el.extractBtnSpinner.classList.toggle("hidden", !isLoading);
   }
 
@@ -265,14 +267,14 @@
 
     if (isVideo) {
       el.modeVideoBtn.className =
-        "btn-press flex-1 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all text-slate-900 dark:text-white bg-white dark:bg-slate-800 shadow-sm";
+        "btn-press flex-1 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all text-neutral-900 dark:text-white bg-white dark:bg-neutral-800 shadow-2xs";
       el.modeAudioBtn.className =
-        "btn-press flex-1 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white";
+        "btn-press flex-1 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white";
     } else {
       el.modeAudioBtn.className =
-        "btn-press flex-1 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all text-slate-900 dark:text-white bg-white dark:bg-slate-800 shadow-sm";
+        "btn-press flex-1 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all text-neutral-900 dark:text-white bg-white dark:bg-neutral-800 shadow-2xs";
       el.modeVideoBtn.className =
-        "btn-press flex-1 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white";
+        "btn-press flex-1 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white";
     }
 
     renderFormatOptions();
@@ -289,7 +291,7 @@
     );
 
     if (filtered.length === 0) {
-      el.formatsGrid.innerHTML = `<p class="col-span-2 text-center text-xs text-slate-400 py-4">No specific ${state.currentMode} streams found. Will download default best stream.</p>`;
+      el.formatsGrid.innerHTML = `<p class="col-span-2 text-center text-xs text-neutral-400 py-4">No specific ${state.currentMode} streams found. Will download default stream.</p>`;
       state.selectedFormatId = isAudioMode ? "bestaudio" : "best";
       return;
     }
@@ -298,24 +300,34 @@
     state.selectedFormatId = filtered[0].format_id;
 
     filtered.forEach((fmt, index) => {
+      const isSelected = fmt.format_id === state.selectedFormatId;
       const card = document.createElement("button");
       card.type = "button";
-      // Staggered cascade entrance (Emil Kowalski principle)
+      // Staggered cascade entrance & Apple Bento card
       card.className =
         "cascade-item btn-press p-3 rounded-xl border text-left flex items-center justify-between transition-all " +
-        (fmt.format_id === state.selectedFormatId
-          ? "border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/40 text-slate-900 dark:text-white shadow-sm ring-1 ring-indigo-500"
-          : "border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-900/60 text-slate-700 dark:text-slate-300");
+        (isSelected
+          ? "border-neutral-900 dark:border-white bg-neutral-900/[0.04] dark:bg-white/[0.08] text-neutral-950 dark:text-white ring-1 ring-neutral-900 dark:ring-white shadow-2xs"
+          : "border-black/[0.06] dark:border-white/[0.08] hover:border-black/[0.15] dark:hover:border-white/[0.16] bg-white dark:bg-white/[0.02] text-neutral-700 dark:text-neutral-300");
 
-      card.style.animationDelay = `${index * 40}ms`;
+      card.style.animationDelay = `${index * 35}ms`;
 
       card.innerHTML = `
-        <div class="space-y-0.5">
-          <div class="text-xs sm:text-sm font-semibold">${fmt.label}</div>
-          <div class="text-[11px] text-slate-400">${fmt.resolution} &bull; .${fmt.ext.toUpperCase()}</div>
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-4 h-4 rounded-full border flex items-center justify-center flex-shrink-0 ${
+            isSelected
+              ? "border-neutral-900 dark:border-white bg-neutral-900 dark:bg-white"
+              : "border-neutral-300 dark:border-neutral-600"
+          }">
+            ${isSelected ? '<div class="w-1.5 h-1.5 rounded-full bg-white dark:bg-neutral-900"></div>' : ''}
+          </div>
+          <div class="space-y-0.5 truncate">
+            <div class="text-xs sm:text-[13px] font-semibold">${fmt.label}</div>
+            <div class="text-[11px] text-neutral-500 dark:text-neutral-400 font-tabular">${fmt.resolution} &bull; .${fmt.ext.toUpperCase()}</div>
+          </div>
         </div>
-        <div class="text-right">
-          <span class="text-xs font-mono font-medium text-slate-500 dark:text-slate-400">${formatBytes(fmt.filesize_approx)}</span>
+        <div class="text-right flex-shrink-0 pl-2">
+          <span class="text-xs font-mono font-medium text-neutral-600 dark:text-neutral-300 font-tabular">${formatBytes(fmt.filesize_approx)}</span>
         </div>
       `;
 
