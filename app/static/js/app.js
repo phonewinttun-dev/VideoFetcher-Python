@@ -271,8 +271,10 @@
       return;
     }
 
-    // Default selection
-    state.selectedFormatId = filtered[0].format_id;
+    // Default selection if current selection is not in filtered list
+    if (!filtered.some((f) => f.format_id === state.selectedFormatId)) {
+      state.selectedFormatId = filtered[0].format_id;
+    }
 
     filtered.forEach((fmt, index) => {
       const isSelected = fmt.format_id === state.selectedFormatId;
