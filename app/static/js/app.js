@@ -40,10 +40,8 @@
     downloadSpinner: document.getElementById("download-spinner"),
     downloadModal: document.getElementById("download-modal"),
     downloadModalTitle: document.getElementById("download-modal-title"),
-    downloadModalStatus: document.getElementById("download-modal-status"),
-    downloadModalThumb: document.getElementById("download-modal-thumb"),
-    downloadModalVideoTitle: document.getElementById("download-modal-video-title"),
-    downloadModalFormat: document.getElementById("download-modal-format"),
+    downloadModalPercent: document.getElementById("download-modal-percent"),
+    downloadProgressbar: document.getElementById("download-progressbar"),
     downloadModalBar: document.getElementById("download-modal-bar"),
     downloadCancelBtn: document.getElementById("download-cancel-btn"),
     settingsModal: document.getElementById("settings-modal"),
@@ -408,7 +406,7 @@
       card.style.animationDelay = `${index * 35}ms`;
 
       card.innerHTML = `
-        <div class="flex items-center gap-2.5 min-w-0">
+        <div class="flex items-center gap-2.5 min-w-0 flex-1">
           <div class="radio-dot w-4 h-4 rounded-full border flex items-center justify-center flex-shrink-0 transition-colors duration-150 ${
             isSelected
               ? "border-white bg-white"
@@ -416,13 +414,13 @@
           }">
             ${isSelected ? '<div class="w-1.5 h-1.5 rounded-full bg-neutral-900"></div>' : ''}
           </div>
-          <div class="space-y-0.5 truncate">
-            <div class="text-xs sm:text-[13px] font-semibold text-white">${fmt.label}</div>
-            <div class="text-[11px] text-neutral-400 font-tabular">${fmt.resolution} &bull; .${fmt.ext.toUpperCase()}</div>
+          <div class="space-y-0.5 min-w-0 flex-1">
+            <div class="text-xs sm:text-[13px] font-semibold text-white truncate">${fmt.label}</div>
+            <div class="text-[11px] text-neutral-400 font-tabular truncate">${fmt.resolution} &bull; .${fmt.ext.toUpperCase()}</div>
           </div>
         </div>
         <div class="text-right flex-shrink-0 pl-2">
-          <span class="text-xs font-mono font-medium text-neutral-300 font-tabular">${formatBytes(fmt.filesize_approx)}</span>
+          <span class="text-xs font-mono font-medium text-neutral-300 font-tabular whitespace-nowrap">${formatBytes(fmt.filesize_approx)}</span>
         </div>
       `;
 
@@ -439,47 +437,63 @@
   // -------------------------------------------------------------
   let activeDownloadController = null;
   let downloadProgressTimer = null;
+  let currentProgress = 0;
+
+  function updateDownloadProgress(percent) {
+    currentProgress = Math.min(Math.max(percent, 0), 100);
+    const rounded = Math.round(currentProgress);
+    if (el.downloadModalPercent) {
+      el.downloadModalPercent.textContent = `${rounded}%`;
+    }
+    if (el.downloadModalBar) {
+      el.downloadModalBar.style.width = `${rounded}%`;
+    }
+    if (el.downloadProgressbar) {
+      el.downloadProgressbar.setAttribute("aria-valuenow", rounded.toString());
+    }
+  }
+
+  function handleModalKeyDown(e) {
+    if (e.key === "Escape") {
+      cancelActiveDownload();
+    }
+  }
 
   function showDownloadModal() {
     if (!el.downloadModal) return;
 
-    if (el.downloadModalThumb) el.downloadModalThumb.src = state.metadata?.thumbnail || "";
-    if (el.downloadModalVideoTitle) el.downloadModalVideoTitle.textContent = state.metadata?.title || "Media File";
-
-    const currentFmt = state.metadata?.formats?.find((f) => f.format_id === state.selectedFormatId);
-    if (el.downloadModalFormat) {
-      el.downloadModalFormat.textContent = currentFmt
-        ? currentFmt.label
-        : state.currentMode === "audio"
-        ? "Audio (.mp3 / .m4a)"
-        : "Video (.mp4)";
-    }
-
-    if (el.downloadModalStatus) el.downloadModalStatus.textContent = "Connecting to media server...";
-    if (el.downloadModalBar) el.downloadModalBar.style.width = "20%";
-
+    updateDownloadProgress(0);
     el.downloadModal.classList.remove("hidden");
+    document.body.classList.add("overflow-hidden");
 
-    let seconds = 0;
+    // Focus cancel button for keyboard & screen reader accessibility
+    setTimeout(() => el.downloadCancelBtn?.focus(), 50);
+    window.addEventListener("keydown", handleModalKeyDown);
+
+    // Natural fluid progress ticker:
+    // Starts from 5%, quickly advances to ~45%, then smoothly eases towards ~92%
+    let progress = 5;
+    updateDownloadProgress(progress);
+
     clearInterval(downloadProgressTimer);
     downloadProgressTimer = setInterval(() => {
-      seconds++;
-      if (seconds === 3) {
-        if (el.downloadModalStatus) el.downloadModalStatus.textContent = "Fetching audio/video stream from YouTube...";
-        if (el.downloadModalBar) el.downloadModalBar.style.width = "45%";
-      } else if (seconds === 8) {
-        if (el.downloadModalStatus) el.downloadModalStatus.textContent = "Processing and converting media format...";
-        if (el.downloadModalBar) el.downloadModalBar.style.width = "75%";
-      } else if (seconds === 18) {
-        if (el.downloadModalStatus) el.downloadModalStatus.textContent = "Finalizing stream and transferring to device...";
-        if (el.downloadModalBar) el.downloadModalBar.style.width = "90%";
+      if (progress < 40) {
+        progress += Math.random() * 4 + 3; // quick initial ramp
+      } else if (progress < 75) {
+        progress += Math.random() * 2 + 1; // steady progress
+      } else if (progress < 92) {
+        progress += Math.random() * 0.8 + 0.2; // gentle crawl while server prepares file
       }
-    }, 1000);
+      updateDownloadProgress(progress);
+    }, 180);
   }
 
   function hideDownloadModal() {
     clearInterval(downloadProgressTimer);
+    window.removeEventListener("keydown", handleModalKeyDown);
+    document.body.classList.remove("overflow-hidden");
     if (el.downloadModal) el.downloadModal.classList.add("hidden");
+    el.downloadBtn?.focus();
   }
 
   function cancelActiveDownload() {
@@ -489,7 +503,7 @@
     }
     hideDownloadModal();
     setDownloadLoading(false);
-    showToast("Download cancelled by user", "info", 2500);
+    showToast("Download cancelled", "info", 2000);
   }
 
   async function triggerDownload() {
@@ -525,8 +539,7 @@
         throw new Error(errorJson.detail || "Download failed on server.");
       }
 
-      if (el.downloadModalStatus) el.downloadModalStatus.textContent = "Download complete! Saving to device...";
-      if (el.downloadModalBar) el.downloadModalBar.style.width = "100%";
+      updateDownloadProgress(100);
 
       // Extract filename from Content-Disposition header
       const disposition = resp.headers.get("Content-Disposition");
