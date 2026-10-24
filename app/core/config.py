@@ -15,7 +15,7 @@ class Settings:
     TEMPLATES_DIR: Path = BASE_DIR / "app" / "templates"
     STATIC_DIR: Path = BASE_DIR / "app" / "static"
 
-    MAX_FILE_SIZE_MB: int = int(os.getenv("MAX_FILE_SIZE_MB", "500"))
+    MAX_FILE_SIZE_MB: int = int(os.getenv("MAX_FILE_SIZE_MB", "300"))
     DEFAULT_USER_AGENT: str = os.getenv(
         "DEFAULT_USER_AGENT",
         (

@@ -1,4 +1,5 @@
 import os
+import threading
 from pathlib import Path
 from urllib.parse import quote
 
@@ -10,6 +11,9 @@ from app.core.yt_client import yt_client
 from app.features.download.schemas import DownloadRequest
 
 router = APIRouter(prefix="/api/download", tags=["Download"])
+
+# Restrict to strictly 1 active download at a time to prevent CPU spikes and Out-Of-Memory (OOM) crashes on Render Free Tier (512MB RAM)
+DOWNLOAD_SEMAPHORE = threading.BoundedSemaphore(1)
 
 
 def cleanup_temp_file(file_path: str) -> None:
@@ -57,6 +61,12 @@ def download_media_post(
     Download media based on JSON payload and stream it directly as an attachment.
     Auto-cleans the temporary server file upon completion.
     """
+    if not DOWNLOAD_SEMAPHORE.acquire(blocking=False):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Server is currently processing other downloads. Please try again shortly.",
+        )
+
     try:
         file_path, display_filename = yt_client.download_media(
             url=payload.url,
@@ -79,6 +89,8 @@ def download_media_post(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An unexpected download error occurred: {str(e)}",
         )
+    finally:
+        DOWNLOAD_SEMAPHORE.release()
 
 
 @router.get("")
@@ -95,6 +107,12 @@ def download_media_get(
     Example: /api/download?url=https://youtube.com/watch?v=...&type=video
     """
     effective_is_audio = is_audio or (type is not None and type.lower() == "audio")
+
+    if not DOWNLOAD_SEMAPHORE.acquire(blocking=False):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Server is currently processing other downloads. Please try again shortly.",
+        )
 
     try:
         file_path, display_filename = yt_client.download_media(
@@ -117,3 +135,5 @@ def download_media_get(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An unexpected download error occurred: {str(e)}",
         )
+    finally:
+        DOWNLOAD_SEMAPHORE.release()

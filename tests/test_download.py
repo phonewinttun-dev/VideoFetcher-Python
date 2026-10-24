@@ -81,3 +81,29 @@ def test_download_invalid_url(client: TestClient) -> None:
     )
     assert resp.status_code == 400
     assert "Invalid URL" in resp.json()["detail"]
+
+
+def test_download_ssrf_url_rejected(client: TestClient) -> None:
+    resp = client.post(
+        "/api/download",
+        json={"url": "http://127.0.0.1:10000/api/health"},
+    )
+    assert resp.status_code == 400
+    assert "Invalid URL" in resp.json()["detail"]
+
+
+def test_download_concurrency_throttle(client: TestClient) -> None:
+    from app.features.download.router import DOWNLOAD_SEMAPHORE
+
+    # Acquire the single slot to simulate an active ongoing download
+    DOWNLOAD_SEMAPHORE.acquire()
+
+    try:
+        resp = client.post(
+            "/api/download",
+            json={"url": "https://www.youtube.com/watch?v=123"},
+        )
+        assert resp.status_code == 429
+        assert "Server is currently processing other downloads" in resp.json()["detail"]
+    finally:
+        DOWNLOAD_SEMAPHORE.release()
