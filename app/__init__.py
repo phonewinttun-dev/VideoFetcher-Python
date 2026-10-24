@@ -1,0 +1,1 @@
+"""VideoFetcher Core Application Package."""
