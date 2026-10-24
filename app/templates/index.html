@@ -12,8 +12,8 @@
   <meta name="theme-color" content="#090d16" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
   <link rel="manifest" href="{{ url_for('static', path='manifest.json') }}">
-  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', path='icons/icon.svg') }}">
-  <link rel="apple-touch-icon" href="{{ url_for('static', path='icons/icon.svg') }}">
+  <link rel="icon" type="image/png" href="{{ url_for('static', path='icons/logo.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', path='icons/logo.png') }}">
 
   <!-- Precompiled Standalone Tailwind CSS with Emil Design Engineering tokens -->
   <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
@@ -30,11 +30,7 @@
   <header class="sticky top-0 z-30 backdrop-blur-md bg-white/80 dark:bg-[#090d16]/80 border-b border-slate-200/80 dark:border-slate-800/80">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-500 flex items-center justify-center shadow-sm shadow-indigo-500/20">
-          <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
-        </div>
+        <img src="{{ url_for('static', path='icons/logo.png') }}" alt="VideoFetcher Logo" class="w-9 h-9 rounded-xl object-cover shadow-sm border border-slate-700/40">
         <div>
           <span class="font-bold text-lg tracking-tight bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-800 dark:from-white dark:via-slate-200 dark:to-slate-300 bg-clip-text text-transparent">
             {{ app_name }}

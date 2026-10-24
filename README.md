@@ -1,8 +1,10 @@
 <div align="center">
 
+<img src="app/static/icons/logo.png" alt="VideoFetcher Logo" width="120" height="120" style="border-radius: 24px;" />
+
 # VideoFetcher
 
-**A modern, lightweight, privacy-focused media downloader powered by FastAPI, yt-dlp, and Tailwind CSS.**
+**Universal media downloader for the web, powered by FastAPI, yt-dlp, and Tailwind CSS.**
 
 [![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
@@ -14,145 +16,151 @@
 <br />
 
 <p align="center">
-  <a href="#-inspiration--attribution">Inspiration</a> &bull;
-  <a href="#-key-features">Key Features</a> &bull;
-  <a href="#-architecture">Architecture</a> &bull;
-  <a href="#-quick-start">Quick Start</a> &bull;
-  <a href="#-api-reference">API Docs</a> &bull;
-  <a href="#-ios-shortcuts-integration">iOS Shortcuts</a> &bull;
-  <a href="#-configuration">Configuration</a>
+  <a href="#credits-and-attribution">Credits</a> &bull;
+  <a href="#overview">Overview</a> &bull;
+  <a href="#features">Features</a> &bull;
+  <a href="#architecture">Architecture</a> &bull;
+  <a href="#getting-started">Getting Started</a> &bull;
+  <a href="#configuration">Configuration</a> &bull;
+  <a href="#api-reference">API Docs</a> &bull;
+  <a href="#ios-shortcuts-integration">iOS Shortcuts</a>
 </p>
 
 </div>
 
 ---
 
-> [!NOTE]
-> ### 💡 Inspiration & Attribution
-> This project is an inspired **web and Progressive Web App (PWA) version** of the open-source Android app [**VideoFetcher**](https://github.com/Isnotavailble/VideoFetcher) created by [**Isnotavailble**](https://github.com/Isnotavailble). 
-> 
-> While the original application delivers an exceptional native experience on Android, this Python/FastAPI rewrite brings the same universal media extraction capabilities and privacy-first ethos to **iOS (via full-screen PWA), macOS, Windows, Linux, and any modern web browser**.
+## Credits and Attribution
+
+Full credit goes to **[Isnotavailble](https://github.com/Isnotavailble)** and the original open-source project **[VideoFetcher (Android)](https://github.com/Isnotavailble/VideoFetcher)**.
+
+This Python and web implementation is an inspired rewrite designed to expand the original application's privacy-focused, universal downloading capabilities to iOS (via Progressive Web App), Windows, macOS, Linux, and any modern web browser. The core philosophy of delivering a tracking-free, subscription-free, and user-empowered media tool originates directly from the foundational work done by Isnotavailble.
 
 ---
 
-## 🛡️ Privacy-First & Zero-Disk-Leak Philosophy
+## Overview
 
-Traditional web downloaders often store user files indefinitely, track URLs, or retain authentication credentials. **VideoFetcher Web** is architected with strict privacy and resource-safety guarantees:
+VideoFetcher is an open-source media utility engineered to extract and download video and audio from popular media platforms directly to your device.
 
-* **Ephemeral Cookies:** Netscape `cookies.txt` entries are saved solely in your browser's local storage (`localStorage`). They are forwarded per-request, written to isolated temporary memory on the server, and immediately deleted once extraction or download finishes.
-* **Automatic Server Cleanup:** Downloaded media streams are piped directly to your device via `Content-Disposition: attachment`. FastAPI's `BackgroundTasks` automatically purges temporary disk files immediately after transmission.
-* **Resource-Constrained Optimization:** Specifically tuned to run smoothly within free-tier cloud containers (512 MB RAM limits) without memory exhaustion.
+Unlike conventional web downloaders that track user submissions, retain downloaded media on servers, or inject ads, VideoFetcher enforces a strict zero-disk-leak and privacy-first model:
 
----
-
-## ✨ Key Features
-
-* **Universal Website Extraction:** Seamlessly download video and audio from YouTube, TikTok, Instagram, Facebook, X (Twitter), and hundreds of other platforms backed directly by [`yt-dlp`](https://github.com/yt-dlp/yt-dlp).
-* **In-Process Python Integration:** Zero shell subprocess overhead. Interacts natively with `yt-dlp`'s Python APIs for faster extraction and lower latency.
-* **Progressive Web App (PWA):** Installable directly to your iPhone or iPad Home Screen via Safari, hiding the browser URL bar for a native application feel.
-* **Emil Kowalski Design Engineering:**
-  * **Tactile Press Feedback:** Interactive buttons scale to `0.97` on press (`160ms cubic-bezier(0.23, 1, 0.32, 1)`).
-  * **Natural Scale Entrances:** Metadata cards reveal smoothly from `scale(0.95)` with zero abrupt pops.
-  * **Staggered Cascade:** Format options cascade into view sequentially with `40ms` stagger intervals.
-  * **Sonner-Style Toasts:** Non-intrusive, interruptible floating notifications.
-  * **Surface Depth:** Rich dark slate palette (`#090d16`) with subtle `1px` inner top highlights.
-* **iOS Shortcuts & Quick Share Integration:** Direct URL parameter execution (`?url=...&type=video`) allows one-tap downloads from the iOS Share Sheet without manual copy-pasting.
-* **Smart Format Separation:** One-click toggling between **Video (.mp4)** with custom resolution tiers (1080p, 720p, 480p, 360p) and **Audio Only (.mp3 / .m4a)**.
-* **Standalone Tailwind CSS:** Fully compiled, minified static stylesheet (`style.css`) with zero runtime Node.js dependency.
-* **Light & Dark Mode:** Native system preference detection with seamless manual toggle persisted in local storage.
+- **Client-Side Cookie Isolation:** User-provided Netscape cookies are stored exclusively in the browser's local storage and forwarded on a per-request basis. Ephemeral cookie files on the server are unlinked immediately after use.
+- **Immediate Server Cleanup:** Downloads are streamed directly to the client as attachments. Background cleanup tasks immediately delete temporary media files from the server disk.
+- **Resource Efficiency:** Designed to run reliably within low-memory environments (such as 512 MB RAM containers) without process crashes.
 
 ---
 
-## 🏛️ Architecture & Folder Structure
+## Features
 
-VideoFetcher uses a **feature-driven architecture** keeping related routes, schemas, and logic colocated:
+- **Multi-Platform Media Extraction:** Supports video and audio extraction from YouTube, TikTok, Instagram, Facebook, X (Twitter), and hundreds of other sites supported by yt-dlp.
+- **In-Process Python Integration:** Direct programmatic integration with `yt-dlp` eliminates shell subprocess overhead, yielding faster response times and reliable error handling.
+- **Progressive Web App (PWA):** Installs cleanly on iOS (via Safari Add to Home Screen) and desktop platforms with full-screen standalone display mode.
+- **Emil Kowalski Design Engineering:**
+  - Tactile button press feedback scaling to 0.97 on click.
+  - Natural component entry transitions starting from scale 0.95 and opacity 0.
+  - Staggered cascade animations for available format options.
+  - Non-blocking, interruptible floating toast notifications.
+  - Dark mode surface depth with subtle 1px border highlights.
+- **Direct iOS Shortcuts Integration:** URL query parameters (`?url=...&type=video`) allow one-tap downloads directly from the iOS Share Sheet.
+- **Format and Quality Selection:** Seamless toggle between Video (MP4) with granular resolution choices (1080p, 720p, 480p, 360p) and Audio-Only (MP3 / M4A).
+- **Standalone CSS:** Precompiled, minified Tailwind CSS bundle requiring zero Node.js runtime processes in production.
+
+---
+
+## Architecture
+
+VideoFetcher follows a feature-driven folder organization:
 
 ```text
 VideoFetcher-Python/
-├── app/
-│   ├── core/                       # Shared configuration, settings & yt-dlp wrapper
-│   │   ├── config.py               # Environment configuration & FFmpeg detection
-│   │   └── yt_client.py            # In-process yt-dlp extraction & download logic
-│   │
-│   ├── features/                   # Domain features
-│   │   ├── extract/                # Metadata extraction & format discovery
-│   │   │   ├── router.py           # POST /api/extract
-│   │   │   └── schemas.py
-│   │   │
-│   │   ├── download/               # Media download, streaming & auto-cleanup
-│   │   │   ├── router.py           # POST /api/download, GET /api/download
-│   │   │   └── schemas.py
-│   │   │
-│   │   └── settings/               # Cookie validation & runtime engine inspection
-│   │       ├── router.py           # /api/settings/version, /api/settings/cookies/validate
-│   │       └── schemas.py
-│   │
-│   ├── static/                     # Standalone frontend assets (no runtime Node.js)
-│   │   ├── css/
-│   │   │   ├── input.css           # Tailwind source & Emil Kowalski design tokens
-│   │   │   └── style.css           # Compiled, minified production CSS (44 KB)
-│   │   ├── js/
-│   │   │   └── app.js              # Vanilla ES6 application logic & toast system
-│   │   ├── icons/
-│   │   │   └── icon.svg            # Scalable PWA vector glyph
-│   │   ├── manifest.json           # PWA web manifest
-│   │   └── sw.js                   # Service Worker (offline app shell cache)
-│   │
-│   ├── templates/                  # Standard FastAPI Jinja2 template
-│   │   └── index.html              # Responsive single-page client interface
-│   │
-│   └── main.py                     # FastAPI application entrypoint
-│
-├── tests/                          # Comprehensive pytest test suite (20 tests)
-├── .env.example                    # Configuration template (no hardcoded secrets)
-├── package.json                    # Tailwind CLI build scripts
-├── requirements.txt                # Python dependencies
-└── README.md
+|-- app/
+|   |-- core/                       # Shared settings, config, and yt-dlp client
+|   |   |-- config.py               # Environment configuration and FFmpeg detection
+|   |   `-- yt_client.py            # In-process yt-dlp wrapper and cleanup logic
+|   |
+|   |-- features/                   # Domain features
+|   |   |-- extract/                # Metadata extraction endpoints
+|   |   |   |-- router.py           # POST /api/extract
+|   |   |   `-- schemas.py
+|   |   |
+|   |   |-- download/               # Media download and streaming endpoints
+|   |   |   |-- router.py           # POST /api/download, GET /api/download
+|   |   |   `-- schemas.py
+|   |   |
+|   |   `-- settings/               # Cookie validation and engine diagnostics
+|   |       |-- router.py           # /api/settings/version, /api/settings/cookies/validate
+|   |       `-- schemas.py
+|   |
+|   |-- static/                     # Frontend static assets
+|   |   |-- css/
+|   |   |   |-- input.css           # Tailwind source with motion design tokens
+|   |   |   `-- style.css           # Compiled standalone stylesheet (44 KB)
+|   |   |-- js/
+|   |   |   `-- app.js              # Vanilla ES6 client logic
+|   |   |-- icons/
+|   |   |   |-- logo.png            # Official VideoFetcher logo
+|   |   |   `-- icon.svg            # Scalable vector icon
+|   |   |-- manifest.json           # Web app manifest
+|   |   `-- sw.js                   # Service Worker for offline shell caching
+|   |
+|   |-- templates/                  # FastAPI Jinja2 template
+|   |   `-- index.html              # Single-page interface
+|   |
+|   `-- main.py                     # Application entry point
+|
+|-- tests/                          # Automated pytest suite (20 tests)
+|-- .env.example                    # Environment configuration template
+|-- package.json                    # Tailwind CLI build scripts
+|-- requirements.txt                # Python dependencies
+|-- LICENSE                         # MIT License
+`-- README.md
 ```
 
 ---
 
-## 🚀 Quick Start
+## Getting Started
 
 ### Prerequisites
-* **Python 3.10+** (Tested on Python 3.10, 3.11, 3.12, 3.13, 3.14)
-* **FFmpeg** (Optional but strongly recommended for audio extraction and merging separate high-res video/audio streams).
 
-### 1. Clone & Set Up Environment
+- Python 3.10 or higher
+- FFmpeg (recommended for media format merging and audio post-processing)
 
-```bash
-git clone https://github.com/<your-username>/VideoFetcher-Python.git
-cd VideoFetcher-Python
+### Installation
 
-# Create virtual environment
-python -m venv .venv
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/<your-username>/VideoFetcher-Python.git
+   cd VideoFetcher-Python
+   ```
 
-# Activate virtual environment
-# Windows (PowerShell):
-.venv\Scripts\Activate.ps1
-# Linux / macOS:
-source .venv/bin/activate
-```
+2. Create and activate a virtual environment:
+   ```bash
+   # Windows (PowerShell)
+   python -m venv .venv
+   .venv\Scripts\Activate.ps1
 
-### 2. Install Dependencies
+   # Linux / macOS
+   python3 -m venv .venv
+   source .venv/bin/activate
+   ```
 
-```bash
-pip install -r requirements.txt
-```
+3. Install required Python packages:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-### 3. Run Development Server
+4. Start the application:
+   ```bash
+   uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+   ```
 
-```bash
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
-```
-
-Open your browser at **[http://127.0.0.1:8000](http://127.0.0.1:8000)** to view the application.
+5. Access the web interface at `http://127.0.0.1:8000`.
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
-Copy `.env.example` to `.env` to customize your environment:
+Copy `.env.example` to create your local `.env` file:
 
 ```bash
 cp .env.example .env
@@ -160,86 +168,75 @@ cp .env.example .env
 
 | Variable | Description | Default |
 | --- | --- | --- |
-| `DEBUG` | Enable debug logging | `false` |
-| `TEMP_DIR` | Directory for ephemeral download and cookie files | `./temp_downloads` |
-| `FFMPEG_PATH` | Path to custom `ffmpeg` binary (auto-detected from `PATH` if empty) | Auto-detected |
-| `MAX_FILE_SIZE_MB` | Maximum allowed download size limit | `500` |
-| `ALLOWED_ORIGINS` | Allowed CORS origins (comma-separated) | `*` |
-| `DEFAULT_USER_AGENT` | Default User-Agent string used for extraction | Chrome 124 desktop UA |
+| `DEBUG` | Enable debug mode | `false` |
+| `TEMP_DIR` | Directory for temporary downloads and cookies | `./temp_downloads` |
+| `FFMPEG_PATH` | Path to custom FFmpeg binary | Auto-detected from PATH |
+| `MAX_FILE_SIZE_MB` | Maximum permitted download size | `500` |
+| `ALLOWED_ORIGINS` | CORS allowed origins (comma-separated) | `*` |
+| `DEFAULT_USER_AGENT` | Default User-Agent header string | Standard Chrome desktop UA |
 
 ---
 
-## 📡 REST API Reference
+## API Reference
 
-Interactive API documentation is automatically generated by FastAPI:
-* **Swagger UI:** [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-* **ReDoc:** [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
+FastAPI provides interactive documentation out of the box:
+- Swagger UI: `http://127.0.0.1:8000/docs`
+- ReDoc: `http://127.0.0.1:8000/redoc`
 
-### Summary of Endpoints
+### Primary Endpoints
 
-| Method | Endpoint | Description |
+| Method | Route | Description |
 | --- | --- | --- |
-| `GET` | `/` | Serves the HTML5 web client via standard FastAPI templating |
-| `POST` | `/api/extract` | Extracts video metadata, thumbnail, duration, and available format options |
-| `POST` | `/api/download` | Downloads media and streams the file as an attachment |
-| `GET` | `/api/download` | Direct query-parameter download (ideal for iOS Shortcuts) |
-| `GET` | `/api/settings/version` | Reports runtime versions (`yt-dlp`, Python, FFmpeg status) |
-| `POST` | `/api/settings/cookies/validate` | Validates Netscape-formatted cookie syntax and domain count |
-| `GET` | `/api/health` | Health check endpoint |
+| `GET` | `/` | Renders the web interface using Jinja2 templates |
+| `POST` | `/api/extract` | Validates a URL and extracts media metadata and formats |
+| `POST` | `/api/download` | Initiates media download and returns a streaming attachment |
+| `GET` | `/api/download` | Query-parameter download route for external shortcut triggers |
+| `GET` | `/api/settings/version` | Reports yt-dlp, Python, and FFmpeg detection status |
+| `POST` | `/api/settings/cookies/validate` | Validates Netscape cookie syntax and extracts domain names |
+| `GET` | `/api/health` | Service health status check |
 
 ---
 
-## 📱 iOS Shortcuts Integration
+## iOS Shortcuts Integration
 
-VideoFetcher is engineered to work directly with Apple Shortcuts on iOS:
+VideoFetcher can be used directly from the iOS Share Sheet without manual copy-pasting:
 
-1. Create a new Shortcut on your iPhone named **"Download Video"**.
-2. Configure the Shortcut to accept URLs from the **Share Sheet**.
-3. Add an action: **Open URL**:
+1. Open the **Shortcuts** app on your iOS device.
+2. Create a new Shortcut and enable **Show in Share Sheet**.
+3. Set the accepted input type to **URLs**.
+4. Add an **Open URL** action with the following address:
    ```text
-   https://your-videofetcher-domain.com/?url=[Shortcut Input]&type=video
+   https://your-domain.com/?url=[Shortcut Input]&type=video
    ```
-4. Now, whenever you browse YouTube, TikTok, or Instagram, tap **Share** &rarr; **Download Video**. VideoFetcher will open, automatically fetch the video, and save it directly into your device's **Files** app!
+5. From Safari, YouTube, or TikTok, tap **Share**, select your shortcut, and the video will be fetched and sent directly to your device's Files folder.
 
 ---
 
-## 🧪 Running Automated Tests
+## Running Automated Tests
 
-VideoFetcher includes a full suite of unit tests covering URL validation, filename sanitization, ephemeral cookie handling, mocked `yt-dlp` extractions, download streaming headers, and template rendering:
+Run the full pytest suite to verify backend and template functionality:
 
 ```bash
 pytest tests -v
 ```
 
-```text
-======================== 20 passed in 0.72s ========================
-```
+All 20 test cases should pass successfully.
 
 ---
 
-## 🎨 Frontend Styling (Tailwind CLI)
+## Responsible Use and Cookie Notice
 
-The production stylesheet (`app/static/css/style.css`) is pre-built and committed. If you modify `app/static/css/input.css` or the templates, rebuild the CSS using:
-
-```bash
-npm run build:css
-```
+- **Copyright Compliance:** Ensure you have the right or proper authorization to download any target media.
+- **Account Safety:** When supplying account cookies to bypass bot detection or access private content, platforms like Meta or Facebook may detect automated traffic. Use cookies responsibly and delete them when they are no longer required.
 
 ---
 
-## ⚠️ Responsible Use & Cookie Notice
+## License
 
-* **Respect Copyright:** Only download content that you own, have permission to download, or is licensed under Creative Commons.
-* **Social Media Cookies:** When uploading Netscape cookies to access private or age-restricted content, `yt-dlp` authenticates with your session. Social platforms (specifically Meta/Facebook) monitor high-frequency automated requests. Exercise caution and avoid aggressive downloading on personal accounts.
-
----
-
-## 📄 License
-
-This project is open-source and released under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](LICENSE).
 
 ---
 
 <div align="center">
-  <sub>Crafted with care &bull; Inspired by <a href="https://github.com/Isnotavailble/VideoFetcher">VideoFetcher (Android)</a></sub>
+  <sub>VideoFetcher Web &bull; Full credit to <a href="https://github.com/Isnotavailble/VideoFetcher">Isnotavailble/VideoFetcher</a></sub>
 </div>
