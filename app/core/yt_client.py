@@ -155,6 +155,7 @@ class YTClient:
             "remote_components": ["ejs:github"],
             "max_filesize": settings.MAX_FILE_SIZE_MB * 1024 * 1024,
             "socket_timeout": 30,
+            "concurrent_fragment_downloads": 4,
             "extractor_args": {
                 "youtube": {
                     "player_client": list(settings.YOUTUBE_PLAYER_CLIENTS),

@@ -285,6 +285,64 @@
 
   </main>
 
+  <!-- Download Progress Modal Dialog (Modal overlay blocks all background interaction & allows cancellation) -->
+  <div
+    id="download-modal"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden transition-all select-none"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="download-modal-title"
+  >
+    <div class="apple-surface w-full max-w-sm rounded-2xl border border-white/[0.12] p-6 shadow-2xl space-y-5 text-center relative">
+      <!-- Animated Status Spinner -->
+      <div class="relative w-16 h-16 mx-auto flex items-center justify-center">
+        <div class="absolute inset-0 rounded-full border-2 border-white/[0.08]"></div>
+        <div class="absolute inset-0 rounded-full border-2 border-white border-t-transparent animate-spin"></div>
+        <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+      </div>
+
+      <!-- Title & Live Status -->
+      <div class="space-y-1">
+        <h3 id="download-modal-title" class="text-base font-semibold text-white tracking-tight">
+          Downloading Media
+        </h3>
+        <p id="download-modal-status" class="text-xs text-neutral-400">
+          Connecting to source server...
+        </p>
+      </div>
+
+      <!-- Compact Media Preview inside Modal -->
+      <div class="p-3 bg-white/[0.03] border border-white/[0.08] rounded-xl flex items-center gap-3 text-left">
+        <img id="download-modal-thumb" src="" alt="Thumbnail" class="w-12 h-12 rounded-lg object-cover bg-white/[0.05] flex-shrink-0" />
+        <div class="min-w-0 flex-1">
+          <div id="download-modal-video-title" class="text-xs font-medium text-white truncate">Title</div>
+          <div id="download-modal-format" class="text-[11px] text-neutral-400 mt-0.5">Selected Format</div>
+        </div>
+      </div>
+
+      <!-- Indeterminate / Dynamic Progress Bar -->
+      <div class="w-full bg-white/[0.06] rounded-full h-1.5 overflow-hidden">
+        <div id="download-modal-bar" class="bg-gradient-to-r from-emerald-400 to-white h-full rounded-full transition-all duration-500 w-1/4 animate-pulse"></div>
+      </div>
+
+      <!-- Cancel Download Button -->
+      <div class="pt-1">
+        <button
+          id="download-cancel-btn"
+          type="button"
+          class="btn-press w-full py-2.5 px-4 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 active:bg-rose-500/30 text-rose-300 border border-rose-500/20 text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-2"
+        >
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          <span>Cancel Download</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Settings Modal (Apple Glass Aesthetic) -->
   <div
     id="settings-modal"

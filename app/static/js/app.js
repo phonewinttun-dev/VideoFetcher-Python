@@ -38,6 +38,14 @@
     downloadBtnText: document.getElementById("download-btn-text"),
     downloadIcon: document.getElementById("download-icon"),
     downloadSpinner: document.getElementById("download-spinner"),
+    downloadModal: document.getElementById("download-modal"),
+    downloadModalTitle: document.getElementById("download-modal-title"),
+    downloadModalStatus: document.getElementById("download-modal-status"),
+    downloadModalThumb: document.getElementById("download-modal-thumb"),
+    downloadModalVideoTitle: document.getElementById("download-modal-video-title"),
+    downloadModalFormat: document.getElementById("download-modal-format"),
+    downloadModalBar: document.getElementById("download-modal-bar"),
+    downloadCancelBtn: document.getElementById("download-cancel-btn"),
     settingsModal: document.getElementById("settings-modal"),
     settingsOpenBtn: document.getElementById("settings-open-btn"),
     settingsCloseBtn: document.getElementById("settings-close-btn"),
@@ -427,8 +435,63 @@
   }
 
   // -------------------------------------------------------------
-  // 7. Download Flow
+  // 7. Download Flow & Progress Modal Management
   // -------------------------------------------------------------
+  let activeDownloadController = null;
+  let downloadProgressTimer = null;
+
+  function showDownloadModal() {
+    if (!el.downloadModal) return;
+
+    if (el.downloadModalThumb) el.downloadModalThumb.src = state.metadata?.thumbnail || "";
+    if (el.downloadModalVideoTitle) el.downloadModalVideoTitle.textContent = state.metadata?.title || "Media File";
+
+    const currentFmt = state.metadata?.formats?.find((f) => f.format_id === state.selectedFormatId);
+    if (el.downloadModalFormat) {
+      el.downloadModalFormat.textContent = currentFmt
+        ? currentFmt.label
+        : state.currentMode === "audio"
+        ? "Audio (.mp3 / .m4a)"
+        : "Video (.mp4)";
+    }
+
+    if (el.downloadModalStatus) el.downloadModalStatus.textContent = "Connecting to media server...";
+    if (el.downloadModalBar) el.downloadModalBar.style.width = "20%";
+
+    el.downloadModal.classList.remove("hidden");
+
+    let seconds = 0;
+    clearInterval(downloadProgressTimer);
+    downloadProgressTimer = setInterval(() => {
+      seconds++;
+      if (seconds === 3) {
+        if (el.downloadModalStatus) el.downloadModalStatus.textContent = "Fetching audio/video stream from YouTube...";
+        if (el.downloadModalBar) el.downloadModalBar.style.width = "45%";
+      } else if (seconds === 8) {
+        if (el.downloadModalStatus) el.downloadModalStatus.textContent = "Processing and converting media format...";
+        if (el.downloadModalBar) el.downloadModalBar.style.width = "75%";
+      } else if (seconds === 18) {
+        if (el.downloadModalStatus) el.downloadModalStatus.textContent = "Finalizing stream and transferring to device...";
+        if (el.downloadModalBar) el.downloadModalBar.style.width = "90%";
+      }
+    }, 1000);
+  }
+
+  function hideDownloadModal() {
+    clearInterval(downloadProgressTimer);
+    if (el.downloadModal) el.downloadModal.classList.add("hidden");
+  }
+
+  function cancelActiveDownload() {
+    if (activeDownloadController) {
+      activeDownloadController.abort();
+      activeDownloadController = null;
+    }
+    hideDownloadModal();
+    setDownloadLoading(false);
+    showToast("Download cancelled by user", "info", 2500);
+  }
+
   async function triggerDownload() {
     const rawUrl = state.metadata?.webpage_url || el.urlInput?.value?.trim();
     if (!rawUrl) {
@@ -436,8 +499,9 @@
       return;
     }
 
+    activeDownloadController = new AbortController();
+    showDownloadModal();
     setDownloadLoading(true);
-    showToast("Preparing media download...", "info", 3000);
 
     try {
       const cookies = localStorage.getItem("vf_cookies") || null;
@@ -446,6 +510,7 @@
       const resp = await fetch("/api/download", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: activeDownloadController.signal,
         body: JSON.stringify({
           url: rawUrl,
           format_id: state.selectedFormatId,
@@ -459,6 +524,9 @@
         const errorJson = await resp.json().catch(() => ({}));
         throw new Error(errorJson.detail || "Download failed on server.");
       }
+
+      if (el.downloadModalStatus) el.downloadModalStatus.textContent = "Download complete! Saving to device...";
+      if (el.downloadModalBar) el.downloadModalBar.style.width = "100%";
 
       // Extract filename from Content-Disposition header
       const disposition = resp.headers.get("Content-Disposition");
@@ -498,10 +566,14 @@
             title: filename,
           });
           showToast("Saved! Tap 'Save Video' to add to Photos.", "success", 4500);
+          setTimeout(hideDownloadModal, 500);
           return;
         } catch (shareErr) {
           // If user cancelled the share sheet, return quietly without error
-          if (shareErr.name === "AbortError") return;
+          if (shareErr.name === "AbortError") {
+            setTimeout(hideDownloadModal, 500);
+            return;
+          }
           // Otherwise fall back to standard download below
         }
       }
@@ -517,6 +589,7 @@
 
       // Clean up object URL
       setTimeout(() => window.URL.revokeObjectURL(objectUrl), 1000);
+      setTimeout(hideDownloadModal, 600);
 
       if (isIOS) {
         showToast(`Saved to Files app. In Files, tap Share ➔ 'Save Video' to add to Photos.`, "success", 6000);
@@ -524,9 +597,15 @@
         showToast(`Downloaded: ${filename}`, "success", 4000);
       }
     } catch (err) {
+      if (err.name === "AbortError") {
+        // User intentionally cancelled via Cancel button
+        return;
+      }
+      hideDownloadModal();
       showToast(err.message || "Download failed", "error", 4000);
     } finally {
       setDownloadLoading(false);
+      activeDownloadController = null;
     }
   }
 
@@ -719,6 +798,7 @@
     el.modeVideoBtn?.addEventListener("click", () => setMode("video"));
     el.modeAudioBtn?.addEventListener("click", () => setMode("audio"));
     el.downloadBtn?.addEventListener("click", triggerDownload);
+    el.downloadCancelBtn?.addEventListener("click", cancelActiveDownload);
 
     // Check for query parameters (?url=...)
     handleUrlParameters();
