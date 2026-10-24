@@ -17,7 +17,12 @@
   <!-- Precompiled Standalone Tailwind CSS with Apple Design Tokens -->
   <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
 </head>
-<body class="bg-[#0D0E11] text-[#F3F4F6] min-h-screen flex flex-col font-sans selection:bg-white selection:text-neutral-950">
+<body class="bg-[#0D0E11] text-[#F3F4F6] min-h-screen flex flex-col font-sans selection:bg-white selection:text-neutral-950 relative overflow-x-hidden">
+
+  <!-- Ambient Backdrop Atmosphere -->
+  <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden" aria-hidden="true">
+    <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[680px] h-[360px] bg-gradient-to-b from-white/[0.04] via-emerald-500/[0.02] to-transparent blur-[120px] rounded-full"></div>
+  </div>
 
   <!-- Apple Translucent Navigation Bar -->
   <header class="sticky top-0 z-30 apple-glass border-b border-white/[0.08]">
@@ -33,30 +38,45 @@
         </span>
       </div>
 
+      <!-- Quick Platform Badge -->
+      <div class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-[11px] font-medium text-neutral-300">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400" aria-hidden="true"></span>
+        <span>High-Speed Engine</span>
+      </div>
+
     </div>
   </header>
 
   <!-- Main Content Layout -->
-  <main class="flex-1 max-w-2xl w-full mx-auto px-4 sm:px-6 py-10 sm:py-16 space-y-8">
+  <main class="flex-1 max-w-2xl w-full mx-auto px-4 sm:px-6 py-10 sm:py-14 space-y-7">
 
-    <!-- Editorial Hero Title -->
-    <div class="text-center space-y-2.5">
-      <h1 class="text-3xl sm:text-4xl font-semibold tracking-tight text-white">
+    <!-- Editorial Hero Title & Personality Badge -->
+    <div class="text-center space-y-3">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-xs font-medium text-neutral-300 shadow-2xs backdrop-blur-md">
+        <span class="relative flex h-2 w-2" aria-hidden="true">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        </span>
+        <span>Fast, Clean &amp; Single-Click</span>
+      </div>
+
+      <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">
         Universal Media Downloader
       </h1>
-      <p class="text-sm sm:text-base text-neutral-400 max-w-md mx-auto leading-relaxed">
-        Download videos and audio directly to your device. Streamed cleanly without bloat.
+
+      <p class="text-sm sm:text-base text-neutral-300 max-w-lg mx-auto leading-relaxed">
+        Easily download Instagram Reels, YouTube Shorts, TikTok and Audio with single-click.
       </p>
     </div>
 
     <!-- Spotlight-Inspired Media Input Container -->
-    <section class="apple-surface rounded-2xl p-2.5 sm:p-3 border border-white/[0.08]" aria-label="Media downloader input">
-      <form id="extract-form" class="space-y-2.5" onsubmit="return false;">
-        <div class="relative flex flex-col sm:flex-row items-stretch gap-2">
+    <section class="apple-surface relative rounded-2xl p-3 sm:p-4 border border-white/[0.1] shadow-xl shadow-black/40 transition-all focus-within:border-white/25 focus-within:shadow-2xl" aria-label="Media downloader input">
+      <form id="extract-form" class="space-y-3" onsubmit="return false;">
+        <div class="relative flex flex-col sm:flex-row items-stretch gap-2.5">
           
           <!-- URL Input Bar -->
           <div class="relative flex-1">
-            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500" aria-hidden="true">
               <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
               </svg>
@@ -66,38 +86,38 @@
               id="url-input"
               type="url"
               required
-              aria-label="Media URL"
-              placeholder="Paste media link here (YouTube, TikTok, Instagram...)"
+              aria-label="Media URL input"
+              placeholder="Paste link here (Instagram, YouTube, TikTok, Facebook...)"
               autocomplete="off"
-              class="w-full pl-10 pr-22 py-3 bg-white/[0.04] border border-transparent focus:border-white/20 rounded-xl text-sm focus:outline-none transition-all placeholder:text-neutral-500 text-white"
+              class="w-full pl-10 pr-24 py-3 bg-white/[0.04] border border-transparent focus:border-white/20 rounded-xl text-sm focus:outline-none transition-all placeholder:text-neutral-500 text-white"
             />
             
             <!-- Universal Paste Button -->
             <button
               id="paste-btn"
               type="button"
-              class="btn-press absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1 text-xs font-medium rounded-lg bg-white/[0.08] hover:bg-white/[0.14] text-neutral-200 border border-white/[0.1] shadow-2xs flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              class="btn-press absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-white/[0.08] hover:bg-white/[0.16] active:bg-white/[0.22] text-neutral-200 border border-white/[0.1] shadow-2xs flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-all cursor-pointer"
               aria-label="Paste link from clipboard"
             >
-              <svg class="w-3.5 h-3.5 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <svg class="w-3.5 h-3.5 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
               <span>Paste</span>
             </button>
           </div>
 
-          <!-- Primary Download Action (High-Contrast Apple CTA) -->
+          <!-- Primary Download Action (High-Contrast Tactile Button) -->
           <button
             id="extract-btn"
             type="submit"
-            class="btn-press px-5 py-3 rounded-xl bg-white hover:bg-neutral-100 active:bg-neutral-200 text-neutral-950 font-medium text-sm shadow-xs flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            class="btn-press px-6 py-3 rounded-xl bg-white hover:bg-neutral-100 active:bg-neutral-200 text-neutral-950 font-semibold text-sm shadow-md flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white cursor-pointer transition-all"
             aria-label="Download media"
           >
-            <svg id="extract-btn-icon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <svg id="extract-btn-icon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
             <span id="extract-btn-text">Download</span>
-            <svg id="extract-btn-spinner" class="w-4 h-4 animate-spin hidden" viewBox="0 0 24 24" fill="none">
+            <svg id="extract-btn-spinner" class="w-4 h-4 animate-spin hidden" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
             </svg>
@@ -105,22 +125,100 @@
         </div>
       </form>
 
-      <!-- Minimalist Supported Metadata Strip (Honest "and more") -->
-      <div class="mt-3 pt-2.5 border-t border-white/[0.04] flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-neutral-400">
-        <span class="text-neutral-500">Supported:</span>
-        <span class="hover:text-neutral-300 transition-colors">YouTube</span>
-        <span class="text-neutral-700">&bull;</span>
-        <span class="hover:text-neutral-300 transition-colors">TikTok</span>
-        <span class="text-neutral-700">&bull;</span>
-        <span class="hover:text-neutral-300 transition-colors">Instagram</span>
-        <span class="text-neutral-700">&bull;</span>
-        <span class="hover:text-neutral-300 transition-colors">Facebook</span>
-        <span class="text-neutral-700">&bull;</span>
-        <span class="hover:text-neutral-300 transition-colors">X (Twitter)</span>
-        <span class="text-neutral-700">&bull;</span>
-        <span class="text-neutral-400">and more</span>
+      <!-- Supported Platforms Pill Strip with Official Brand Logos -->
+      <div class="mt-3.5 pt-3 border-t border-white/[0.05] flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 text-xs">
+        <span class="text-neutral-500 text-[11px] font-medium mr-0.5">Supported:</span>
+
+        <!-- YouTube -->
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.03] hover:bg-red-500/10 hover:text-red-300 border border-white/[0.06] text-neutral-300 text-[11px] font-medium transition-all group">
+          <svg class="w-3.5 h-3.5 text-red-500 group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+          </svg>
+          YouTube
+        </span>
+
+        <!-- Facebook -->
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.03] hover:bg-blue-500/10 hover:text-blue-300 border border-white/[0.06] text-neutral-300 text-[11px] font-medium transition-all group">
+          <svg class="w-3.5 h-3.5 text-[#1877F2] group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+          </svg>
+          Facebook
+        </span>
+
+        <!-- Instagram -->
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.03] hover:bg-pink-500/10 hover:text-pink-300 border border-white/[0.06] text-neutral-300 text-[11px] font-medium transition-all group">
+          <svg class="w-3.5 h-3.5 text-[#E4405F] group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+          </svg>
+          Instagram
+        </span>
+
+        <!-- TikTok -->
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.03] hover:bg-cyan-500/10 hover:text-cyan-300 border border-white/[0.06] text-neutral-300 text-[11px] font-medium transition-all group">
+          <svg class="w-3.5 h-3.5 text-[#25F4EE] group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.27 1.76-.23.99-.04 2.09.6 2.85.73.91 1.96 1.34 3.1 1.11.97-.16 1.81-.79 2.22-1.67.26-.54.34-1.15.34-1.75.02-4.34.01-8.69.01-13.03z"/>
+          </svg>
+          TikTok
+        </span>
+
+        <!-- X (Twitter) -->
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.03] hover:bg-neutral-200/10 hover:text-white border border-white/[0.06] text-neutral-300 text-[11px] font-medium transition-all group">
+          <svg class="w-3 h-3 text-neutral-200 group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+          </svg>
+          X
+        </span>
+
+        <span class="text-neutral-500 text-[11px] font-medium ml-0.5">&amp; more</span>
+      </div>
+
+      <!-- Server Size Capacity Note (Jargon-free & Accessible) -->
+      <div class="mt-3 flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-amber-500/[0.06] border border-amber-500/20 text-xs text-amber-200/90 text-center" role="note" aria-label="File size notice">
+        <svg class="w-4 h-4 text-amber-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <span>Videos larger than 300 MB may fail due to server size limits.</span>
       </div>
     </section>
+
+    <!-- Value Highlights Strip (Clean Minimalist Cards) -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+      <div class="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:border-white/[0.1] transition-colors flex items-center gap-2.5">
+        <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center flex-shrink-0" aria-hidden="true">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+        </div>
+        <div class="text-left">
+          <div class="font-medium text-neutral-200">Instant Processing</div>
+          <div class="text-[11px] text-neutral-400">Streamed on the fly</div>
+        </div>
+      </div>
+
+      <div class="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:border-white/[0.1] transition-colors flex items-center gap-2.5">
+        <div class="w-7 h-7 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center flex-shrink-0" aria-hidden="true">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+          </svg>
+        </div>
+        <div class="text-left">
+          <div class="font-medium text-neutral-200">Full Audio &amp; Video</div>
+          <div class="text-[11px] text-neutral-400">MP4, MP3 &amp; M4A formats</div>
+        </div>
+      </div>
+
+      <div class="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:border-white/[0.1] transition-colors flex items-center gap-2.5">
+        <div class="w-7 h-7 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center flex-shrink-0" aria-hidden="true">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+          </svg>
+        </div>
+        <div class="text-left">
+          <div class="font-medium text-neutral-200">Zero Tracking</div>
+          <div class="text-[11px] text-neutral-400">Pure client privacy</div>
+        </div>
+      </div>
+    </div>
 
     <!-- Preview & Format Bento Card (Dynamically displayed) -->
     <section id="preview-section" class="hidden scale-enter apple-surface rounded-2xl border border-white/[0.08] overflow-hidden" aria-label="Media preview and format options">
@@ -129,7 +227,7 @@
         <!-- Metadata Header: Thumbnail + Title + Extractor Info -->
         <div class="flex flex-col sm:flex-row gap-4 items-start">
           <div class="relative w-full sm:w-44 aspect-video rounded-xl overflow-hidden bg-white/[0.05] border border-white/[0.08] flex-shrink-0">
-            <img id="preview-thumbnail" src="" alt="Thumbnail" class="w-full h-full object-cover">
+            <img id="preview-thumbnail" src="" alt="Thumbnail preview" class="w-full h-full object-cover">
             <span id="preview-duration" class="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 text-[11px] font-mono font-medium rounded-md bg-black/80 text-white backdrop-blur-md tabular-nums">
               00:00
             </span>
@@ -137,12 +235,12 @@
 
           <div class="flex-1 min-w-0 space-y-2">
             <div class="flex items-center gap-2">
-              <span id="preview-extractor" class="px-2 py-0.5 text-[11px] font-mono font-medium uppercase tracking-wider rounded-md bg-white/[0.08] text-neutral-300 border border-white/[0.08]">
+              <span id="preview-extractor" class="inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-medium tracking-wide rounded-md bg-white/[0.08] text-neutral-300 border border-white/[0.08]">
                 Media
               </span>
               <a id="preview-link" href="#" target="_blank" rel="noopener noreferrer" class="text-xs text-neutral-400 hover:text-white transition-colors flex items-center gap-1 truncate">
                 <span>Original Link</span>
-                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
               </a>
@@ -159,14 +257,14 @@
             <button
               id="mode-video-btn"
               type="button"
-              class="btn-press flex-1 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all text-white bg-neutral-800 shadow-2xs"
+              class="btn-press flex-1 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all text-white bg-neutral-800 shadow-2xs cursor-pointer"
             >
               Video (.mp4)
             </button>
             <button
               id="mode-audio-btn"
               type="button"
-              class="btn-press flex-1 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all text-neutral-400 hover:text-white"
+              class="btn-press flex-1 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all text-neutral-400 hover:text-white cursor-pointer"
             >
               Audio Only (.mp3 / .m4a)
             </button>
@@ -188,12 +286,12 @@
           <button
             id="download-btn"
             type="button"
-            class="btn-press w-full sm:w-auto px-6 py-2.5 rounded-xl bg-white hover:bg-neutral-100 active:bg-neutral-200 text-neutral-950 font-medium text-sm shadow-xs flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            class="btn-press w-full sm:w-auto px-6 py-2.5 rounded-xl bg-white hover:bg-neutral-100 active:bg-neutral-200 text-neutral-950 font-semibold text-sm shadow-xs flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white cursor-pointer transition-all"
           >
-            <svg id="download-icon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <svg id="download-icon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
-            <svg id="download-spinner" class="w-4 h-4 animate-spin hidden" viewBox="0 0 24 24" fill="none">
+            <svg id="download-spinner" class="w-4 h-4 animate-spin hidden" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
             </svg>

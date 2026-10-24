@@ -8,6 +8,14 @@ def test_root_html_template(client: TestClient) -> None:
     assert "VideoFetcher" in resp.text
     assert "Universal Media Downloader" in resp.text
     assert "style.css" in resp.text
+    assert "Easily download Instagram Reels, YouTube Shorts, TikTok and Audio with single-click." in resp.text
+    assert "300 MB" in resp.text
+    # Verify supported platform brands
+    assert "YouTube" in resp.text
+    assert "Facebook" in resp.text
+    assert "Instagram" in resp.text
+    assert "TikTok" in resp.text
+    assert "X" in resp.text
 
 
 def test_static_assets_serving(client: TestClient) -> None:
@@ -20,6 +28,8 @@ def test_static_assets_serving(client: TestClient) -> None:
     js_resp = client.get("/static/js/app.js")
     assert js_resp.status_code == 200
     assert "VideoFetcher Client Application" in js_resp.text
+    assert "PLATFORMS" in js_resp.text
+    assert "getPlatformInfo" in js_resp.text
 
     # Test Manifest serving
     manifest_resp = client.get("/static/manifest.json")
