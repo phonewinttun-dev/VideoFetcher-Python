@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: videofetcher-python
+    runtime: docker
+    plan: free
+    region: oregon
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: MAX_FILE_SIZE_MB
+        value: 300
+      - key: ALLOWED_ORIGINS
+        value: "*"
