@@ -267,3 +267,31 @@ def test_download_media_success(mock_ydl_class: MagicMock) -> None:
     # Cleanup the dummy file
     if dummy_file.exists():
         dummy_file.unlink()
+
+
+def test_base_opts_youtube_player_clients_and_proxy() -> None:
+    client = YTClient()
+    opts = client._build_base_opts()
+
+    # YouTube Innertube client fallback
+    assert "extractor_args" in opts
+    assert "youtube" in opts["extractor_args"]
+    assert "player_client" in opts["extractor_args"]["youtube"]
+    clients = opts["extractor_args"]["youtube"]["player_client"]
+    assert "mweb" in clients
+    assert "ios" in clients
+    assert "android" in clients
+
+
+def test_format_metadata_float_duration() -> None:
+    client = YTClient()
+    info = {
+        "id": "float_dur",
+        "title": "Float Duration Media",
+        "duration": 213.886,
+        "extractor": "soundcloud",
+        "formats": [],
+    }
+    result = client._format_metadata(info)
+    assert isinstance(result["duration"], int)
+    assert result["duration"] == 214

@@ -162,14 +162,33 @@ Copy `.env.example` to create your local `.env` file:
 cp .env.example .env
 ```
 
-| Variable             | Description                                   | Default                    |
-| -------------------- | --------------------------------------------- | -------------------------- |
-| `DEBUG`              | Enable debug mode                             | `false`                    |
-| `TEMP_DIR`           | Directory for temporary downloads and cookies | `./temp_downloads`         |
-| `FFMPEG_PATH`        | Path to custom FFmpeg binary                  | Auto-detected from PATH    |
-| `MAX_FILE_SIZE_MB`   | Maximum permitted download size               | `500`                      |
-| `ALLOWED_ORIGINS`    | CORS allowed origins (comma-separated)        | `*`                        |
-| `DEFAULT_USER_AGENT` | Default User-Agent header string              | Standard Chrome desktop UA |
+| Variable                 | Description                                                  | Default                          |
+| ------------------------ | ------------------------------------------------------------ | -------------------------------- |
+| `DEBUG`                  | Enable debug mode                                            | `false`                          |
+| `TEMP_DIR`               | Directory for temporary downloads and cookies                | `./temp_downloads`               |
+| `FFMPEG_PATH`            | Path to custom FFmpeg binary                                 | Auto-detected from PATH          |
+| `MAX_FILE_SIZE_MB`       | Maximum permitted download size                              | `300`                            |
+| `ALLOWED_ORIGINS`        | CORS allowed origins (comma-separated)                       | `*`                              |
+| `PROXY`                  | Egress proxy to bypass cloud datacenter IP blocking          | `None` (optional)                |
+| `YOUTUBE_COOKIES`        | Server-wide Netscape cookie text for YouTube fallback        | `None` (optional)                |
+| `COOKIES_FILE`           | Path to cookies.txt file for YouTube extraction              | `None` (optional)                |
+| `YOUTUBE_PLAYER_CLIENTS` | Fallback clients (`mweb,ios,android,tv_samsung,visionos,web`) | `mweb,ios,android,tv...`         |
+| `DEFAULT_USER_AGENT`     | Custom User-Agent header (leave empty for auto)              | Empty (`None`)                   |
+
+### Bypassing Cloud Hosting / Render IP Blocks
+
+Cloud hosting providers (Render, AWS, DigitalOcean, Hetzner, etc.) share IP ranges that YouTube frequently rate-limits or flags with:
+`[youtube] ... Failed to extract any player response`
+
+VideoFetcher solves this through two flexible mechanisms:
+
+1. **Client-side Browser Cookies (No server config needed):**
+   - Click the **Settings (gear icon)** in the web header.
+   - Export cookies using browser extensions like *Get cookies.txt LOCALLY*.
+   - Paste or upload your `cookies.txt` file and click **Validate & Save**. Cookies stay saved locally in your browser and bypass bot walls seamlessly.
+2. **Server-side Environment Variables (Render Dashboard):**
+   - Set `YOUTUBE_COOKIES` in your Render Environment Variables with your Netscape cookies string, OR
+   - Set `PROXY` with a residential or web proxy (`http://username:password@proxy_host:port`).
 
 ---
 

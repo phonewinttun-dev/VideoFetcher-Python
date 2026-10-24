@@ -38,6 +38,22 @@
         </span>
       </div>
 
+      <!-- Action: Settings & Cookies Bypass -->
+      <div class="flex items-center space-x-2">
+        <button
+          id="settings-open-btn"
+          type="button"
+          class="btn-press p-2 rounded-xl text-neutral-400 hover:text-white hover:bg-white/[0.08] border border-white/[0.06] shadow-2xs transition-all cursor-pointer"
+          aria-label="Open Settings"
+          title="Settings & Cookies"
+        >
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </button>
+      </div>
+
     </div>
   </header>
 
@@ -268,6 +284,129 @@
     </section>
 
   </main>
+
+  <!-- Settings Modal (Apple Glass Aesthetic) -->
+  <div
+    id="settings-modal"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md hidden transition-opacity"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="settings-title"
+  >
+    <div class="apple-surface w-full max-w-lg rounded-2xl border border-white/[0.12] p-5 sm:p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-neutral-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <h2 id="settings-title" class="text-base font-semibold text-white">Settings &amp; Bypass</h2>
+        </div>
+        <button
+          id="settings-close-btn"
+          type="button"
+          class="btn-press p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-white/[0.08] cursor-pointer"
+          aria-label="Close Settings"
+        >
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Cookies Manager -->
+      <div class="space-y-2.5">
+        <div class="flex items-center justify-between">
+          <label for="cookies-input" class="text-xs font-semibold tracking-wide text-neutral-200 uppercase">
+            Netscape Cookies (cookies.txt)
+          </label>
+          <span class="text-[11px] text-neutral-400">Stored locally in browser</span>
+        </div>
+        <p class="text-xs text-neutral-400 leading-relaxed">
+          Cloud servers on Render/AWS are often flagged by YouTube. Supplying browser cookies bypasses bot-challenges, player response errors, and age-restrictions.
+        </p>
+        <textarea
+          id="cookies-input"
+          rows="3"
+          placeholder="Paste Netscape cookie text here or upload cookies.txt..."
+          class="w-full p-3 bg-white/[0.03] border border-white/[0.1] rounded-xl text-xs font-mono text-neutral-200 focus:outline-none focus:border-white/30 transition-all placeholder:text-neutral-600"
+        ></textarea>
+        <div class="flex flex-wrap items-center gap-2 pt-1">
+          <input type="file" id="cookies-file" accept=".txt" class="hidden">
+          <button
+            id="cookies-upload-btn"
+            type="button"
+            class="btn-press px-3 py-1.5 text-xs font-medium rounded-lg bg-white/[0.08] hover:bg-white/[0.15] text-neutral-200 border border-white/[0.1] cursor-pointer"
+          >
+            Upload File
+          </button>
+          <button
+            id="cookies-validate-btn"
+            type="button"
+            class="btn-press px-3 py-1.5 text-xs font-semibold rounded-lg bg-white text-neutral-950 hover:bg-neutral-200 cursor-pointer"
+          >
+            Validate &amp; Save
+          </button>
+          <button
+            id="cookies-clear-btn"
+            type="button"
+            class="btn-press px-3 py-1.5 text-xs font-medium rounded-lg text-rose-400 hover:bg-rose-500/10 cursor-pointer"
+          >
+            Clear Cookies
+          </button>
+        </div>
+        <p id="cookies-status" class="text-xs text-emerald-400 hidden pt-1"></p>
+      </div>
+
+      <!-- Custom User-Agent -->
+      <div class="space-y-2 pt-3 border-t border-white/[0.08]">
+        <label for="ua-input" class="block text-xs font-semibold tracking-wide text-neutral-200 uppercase">
+          Custom User-Agent (Optional)
+        </label>
+        <input
+          id="ua-input"
+          type="text"
+          placeholder="Leave blank for automatic engine optimization"
+          class="w-full p-2.5 bg-white/[0.03] border border-white/[0.1] rounded-xl text-xs text-neutral-200 focus:outline-none focus:border-white/30 transition-all placeholder:text-neutral-600"
+        />
+        <div class="flex justify-end gap-2 pt-1">
+          <button
+            id="ua-reset-btn"
+            type="button"
+            class="btn-press px-3 py-1.5 text-xs font-medium text-neutral-400 hover:text-white cursor-pointer"
+          >
+            Reset Default
+          </button>
+          <button
+            id="ua-save-btn"
+            type="button"
+            class="btn-press px-3 py-1.5 text-xs font-semibold rounded-lg bg-white/[0.12] hover:bg-white/[0.2] text-white cursor-pointer"
+          >
+            Save UA
+          </button>
+        </div>
+      </div>
+
+      <!-- Engine Diagnostic Info -->
+      <div class="pt-3 border-t border-white/[0.08] text-xs text-neutral-400 space-y-1.5">
+        <div class="flex justify-between">
+          <span>Engine (yt-dlp):</span>
+          <span id="engine-ytdlp" class="font-mono text-neutral-200">Detecting...</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Python Runtime:</span>
+          <span id="engine-python" class="font-mono text-neutral-200">-</span>
+        </div>
+        <div class="flex justify-between">
+          <span>FFmpeg Post-Processor:</span>
+          <span id="engine-ffmpeg" class="font-medium text-neutral-200">-</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
 
   <!-- Apple HUD Floating Toast Notification Container -->
   <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>

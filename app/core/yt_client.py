@@ -117,11 +117,26 @@ class YTClient:
             "quiet": True,
             "no_warnings": True,
             "noplaylist": True,
-            "user_agent": user_agent or settings.DEFAULT_USER_AGENT,
             "remote_components": ["ejs:github"],
             "max_filesize": settings.MAX_FILE_SIZE_MB * 1024 * 1024,
             "socket_timeout": 30,
+            "extractor_args": {
+                "youtube": {
+                    "player_client": list(settings.YOUTUBE_PLAYER_CLIENTS),
+                }
+            },
         }
+
+        # User-Agent handling:
+        # Only set if explicitly requested or configured by admin.
+        # Otherwise yt-dlp manages proper client-specific UAs (e.g. mobile UA for android/ios).
+        effective_ua = user_agent or settings.DEFAULT_USER_AGENT
+        if effective_ua:
+            opts["user_agent"] = effective_ua
+
+        # Proxy support for bypassing cloud datacenter IP blocks (AWS / Render)
+        if settings.PROXY:
+            opts["proxy"] = settings.PROXY
 
         # Auto-detect available JS runtime for YouTube signature challenge solving
         js_rt = {}
@@ -133,6 +148,9 @@ class YTClient:
 
         if cookie_path:
             opts["cookiefile"] = cookie_path
+        elif settings.COOKIES_FILE and Path(settings.COOKIES_FILE).exists():
+            opts["cookiefile"] = settings.COOKIES_FILE
+
         if self.ffmpeg_location:
             opts["ffmpeg_location"] = self.ffmpeg_location
             opts["merge_output_format"] = "mp4"
@@ -152,7 +170,8 @@ class YTClient:
         if not validate_url(url):
             raise ValueError("Invalid URL format. Please provide a valid HTTP/HTTPS link.")
 
-        with ephemeral_cookie_file(cookies) as cookie_path:
+        effective_cookies = cookies or settings.YOUTUBE_COOKIES
+        with ephemeral_cookie_file(effective_cookies) as cookie_path:
             opts = self._build_base_opts(cookie_path, user_agent)
             opts["skip_download"] = True
 
@@ -176,7 +195,11 @@ class YTClient:
     def _format_metadata(self, info: dict[str, Any]) -> dict[str, Any]:
         """Format raw yt-dlp info into a clean, client-ready structure."""
         title = info.get("title") or "Untitled Media"
-        duration = info.get("duration") or 0
+        raw_duration = info.get("duration") or 0
+        try:
+            duration = int(round(float(raw_duration)))
+        except (ValueError, TypeError):
+            duration = 0
         thumbnail = info.get("thumbnail")
         extractor = info.get("extractor") or info.get("extractor_key") or "generic"
         media_id = str(info.get("id") or uuid.uuid4().hex[:8])
@@ -302,7 +325,8 @@ class YTClient:
         download_id = uuid.uuid4().hex[:10]
         outtmpl = str(settings.TEMP_DIR / f"{download_id}_%(title).100s.%(ext)s")
 
-        with ephemeral_cookie_file(cookies) as cookie_path:
+        effective_cookies = cookies or settings.YOUTUBE_COOKIES
+        with ephemeral_cookie_file(effective_cookies) as cookie_path:
             opts = self._build_base_opts(cookie_path, user_agent)
             opts["outtmpl"] = outtmpl
             opts["restrictfilenames"] = True

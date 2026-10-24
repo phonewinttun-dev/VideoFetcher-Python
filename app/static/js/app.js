@@ -85,6 +85,23 @@
     text.className = "flex-1 leading-snug";
     text.textContent = message;
 
+    toast.appendChild(icon);
+    toast.appendChild(text);
+
+    if (message.includes("Settings") || message.includes("cookies")) {
+      duration = Math.max(duration, 6000);
+      const settingsAction = document.createElement("button");
+      settingsAction.className =
+        "btn-press ml-1 px-2.5 py-1 text-[11px] font-semibold bg-white/10 hover:bg-white/20 active:bg-white/30 text-white rounded-lg cursor-pointer whitespace-nowrap transition-all border border-white/15";
+      settingsAction.textContent = "Open Settings";
+      settingsAction.addEventListener("click", () => {
+        loadSettingsUI();
+        el.settingsModal?.classList.remove("hidden");
+        dismiss();
+      });
+      toast.appendChild(settingsAction);
+    }
+
     const closeBtn = document.createElement("button");
     closeBtn.className = "btn-press text-neutral-400 hover:text-white p-0.5";
     closeBtn.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`;

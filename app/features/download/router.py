@@ -9,6 +9,7 @@ from yt_dlp.utils import DownloadError, ExtractorError
 
 from app.core.yt_client import yt_client
 from app.features.download.schemas import DownloadRequest
+from app.features.extract.router import format_extractor_error
 
 router = APIRouter(prefix="/api/download", tags=["Download"])
 
@@ -79,10 +80,9 @@ def download_media_post(
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except (DownloadError, ExtractorError) as e:
-        clean_msg = str(e).split("ERROR:")[-1].strip()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=clean_msg or "Failed to download media.",
+            detail=format_extractor_error(e),
         )
     except Exception as e:
         raise HTTPException(
@@ -100,6 +100,7 @@ def download_media_get(
     type: str | None = Query(default=None, description="Media type: 'video' or 'audio'"),
     format_id: str | None = Query(default=None, description="Requested format ID"),
     is_audio: bool = Query(default=False, description="Whether to extract audio only"),
+    cookies: str | None = Query(default=None, description="Optional Netscape format cookies"),
     user_agent: str | None = Query(default=None, description="Optional custom User-Agent"),
 ) -> FileResponse:
     """
@@ -119,16 +120,16 @@ def download_media_get(
             url=url,
             format_id=format_id,
             is_audio=effective_is_audio,
+            cookies=cookies,
             user_agent=user_agent,
         )
         return build_file_response(file_path, display_filename, background_tasks)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except (DownloadError, ExtractorError) as e:
-        clean_msg = str(e).split("ERROR:")[-1].strip()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=clean_msg or "Failed to download media.",
+            detail=format_extractor_error(e),
         )
     except Exception as e:
         raise HTTPException(

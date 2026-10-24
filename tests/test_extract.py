@@ -52,3 +52,18 @@ def test_extract_endpoint_download_error(client: TestClient) -> None:
         )
         assert resp.status_code == 400
         assert "Video is private or deleted" in resp.json()["detail"]
+
+
+def test_extract_endpoint_youtube_player_response_error(client: TestClient) -> None:
+    with patch(
+        "app.core.yt_client.yt_client.extract_metadata",
+        side_effect=DownloadError("ERROR: [youtube] 5B-8lHmi74k: Failed to extract any player response"),
+    ):
+        resp = client.post(
+            "/api/extract",
+            json={"url": "https://youtube.com/watch?v=5B-8lHmi74k"},
+        )
+        assert resp.status_code == 400
+        detail = resp.json()["detail"]
+        assert "YouTube blocked requests from this server's cloud IP" in detail
+        assert "Settings" in detail

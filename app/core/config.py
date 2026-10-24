@@ -16,13 +16,35 @@ class Settings:
     STATIC_DIR: Path = BASE_DIR / "app" / "static"
 
     MAX_FILE_SIZE_MB: int = int(os.getenv("MAX_FILE_SIZE_MB", "300"))
-    DEFAULT_USER_AGENT: str = os.getenv(
-        "DEFAULT_USER_AGENT",
-        (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/124.0.0.0 Safari/537.36"
-        ),
+    DEFAULT_USER_AGENT: str = os.getenv("DEFAULT_USER_AGENT", "")
+
+    # Proxy configuration (bypasses datacenter IP blocking on cloud platforms like Render / AWS)
+    PROXY: str | None = (
+        os.getenv("PROXY")
+        or os.getenv("HTTP_PROXY")
+        or os.getenv("HTTPS_PROXY")
+        or os.getenv("YTDLP_PROXY")
+        or None
+    )
+
+    # Server-wide cookie configuration for YouTube / authenticated extraction
+    YOUTUBE_COOKIES: str | None = (
+        os.getenv("YOUTUBE_COOKIES")
+        or os.getenv("COOKIES_TEXT")
+        or None
+    )
+    COOKIES_FILE: str | None = os.getenv("COOKIES_FILE", None)
+
+    # YouTube player clients fallback sequence
+    YOUTUBE_PLAYER_CLIENTS: list[str] = field(
+        default_factory=lambda: [
+            c.strip()
+            for c in os.getenv(
+                "YOUTUBE_PLAYER_CLIENTS",
+                "mweb,ios,android,tv_samsung,visionos,web",
+            ).split(",")
+            if c.strip()
+        ]
     )
 
     ALLOWED_ORIGINS: list[str] = field(
