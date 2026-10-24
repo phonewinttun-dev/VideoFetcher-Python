@@ -1,5 +1,6 @@
 import contextlib
 import re
+import shutil
 import uuid
 from pathlib import Path
 from typing import Any, Generator
@@ -70,11 +71,23 @@ class YTClient:
             "no_warnings": True,
             "noplaylist": True,
             "user_agent": user_agent or settings.DEFAULT_USER_AGENT,
+            "remote_components": ["ejs:github"],
         }
+
+        # Auto-detect available JS runtime for YouTube signature challenge solving
+        js_rt = {}
+        for rt in ("node", "deno", "bun"):
+            if shutil.which(rt):
+                js_rt[rt] = {}
+        if js_rt:
+            opts["js_runtimes"] = js_rt
+
         if cookie_path:
             opts["cookiefile"] = cookie_path
         if self.ffmpeg_location:
             opts["ffmpeg_location"] = self.ffmpeg_location
+            opts["merge_output_format"] = "mp4"
+            opts["remuxvideo"] = "mp4"
         return opts
 
     def extract_metadata(
@@ -136,43 +149,81 @@ class YTClient:
             "is_audio": False,
         })
 
-        # Add distinct available video resolutions if present
-        seen_heights = set()
-        for f in reversed(raw_formats):
-            vcodec = f.get("vcodec")
-            if vcodec == "none":
+        # Add distinct available video resolutions sorted descending
+        available_heights: dict[int, dict[str, Any]] = {}
+        for f in raw_formats:
+            if f.get("vcodec") == "none":
                 continue
             height = f.get("height")
-            if not height or height in seen_heights or height < 240:
+            if not height or height < 240:
                 continue
-            seen_heights.add(height)
-
-            label = f"{height}p"
-            f_id = f.get("format_id", "")
-            ext = f.get("ext", "mp4")
-            # If no FFmpeg, prefer formats that have both video and audio
+            # If no FFmpeg, skip formats without audio
             if not has_ffmpeg and f.get("acodec") == "none":
                 continue
+            # Keep format with file size info or first found
+            if height not in available_heights or f.get("filesize") or f.get("filesize_approx"):
+                available_heights[height] = f
+
+        # Sort heights in descending order (e.g. 2160, 1440, 1080, 720, 480, 360, 240)
+        for height in sorted(available_heights.keys(), reverse=True):
+            f = available_heights[height]
+            label = f"{height}p"
+            quality_tag = ""
+            if height >= 2160:
+                quality_tag = "4K"
+            elif height >= 1440:
+                quality_tag = "2K"
+            elif height >= 1080:
+                quality_tag = "Full HD"
+            elif height >= 720:
+                quality_tag = "HD"
+
+            display_label = f"Video ({label} - {quality_tag})" if quality_tag else f"Video ({label})"
 
             formats_list.append({
-                "format_id": f_id or f"bestvideo[height<={height}]+bestaudio/best[height<={height}]",
-                "label": f"Video ({label})",
+                "format_id": f"video-{height}p",
+                "label": display_label,
                 "resolution": label,
-                "ext": ext if ext in ("mp4", "webm") else "mp4",
+                "ext": "mp4",
                 "filesize_approx": f.get("filesize") or f.get("filesize_approx"),
                 "is_audio": False,
             })
 
-        # Audio-only options
-        audio_ext = "mp3" if has_ffmpeg else "m4a"
+        # Audio-only options (Multiple quality choices)
         formats_list.append({
-            "format_id": "bestaudio",
-            "label": f"Audio Only ({audio_ext.upper()})",
-            "resolution": "Audio",
-            "ext": audio_ext,
+            "format_id": "audio-m4a",
+            "label": "Best Quality Audio (M4A)",
+            "resolution": "Original / High Fidelity",
+            "ext": "m4a",
             "filesize_approx": None,
             "is_audio": True,
         })
+
+        if has_ffmpeg:
+            formats_list.append({
+                "format_id": "audio-mp3-320",
+                "label": "Audio (MP3 - High Quality)",
+                "resolution": "320 kbps",
+                "ext": "mp3",
+                "filesize_approx": None,
+                "is_audio": True,
+            })
+            formats_list.append({
+                "format_id": "audio-mp3-192",
+                "label": "Audio (MP3 - Standard)",
+                "resolution": "192 kbps",
+                "ext": "mp3",
+                "filesize_approx": None,
+                "is_audio": True,
+            })
+            formats_list.append({
+                "format_id": "audio-mp3-128",
+                "label": "Audio (MP3 - Fast / Compact)",
+                "resolution": "128 kbps",
+                "ext": "mp3",
+                "filesize_approx": None,
+                "is_audio": True,
+            })
 
         return {
             "id": media_id,
@@ -210,26 +261,32 @@ class YTClient:
             has_ffmpeg = bool(self.ffmpeg_location)
 
             if is_audio:
-                if has_ffmpeg:
+                if format_id == "audio-m4a" or not has_ffmpeg:
+                    opts["format"] = "bestaudio[ext=m4a]/bestaudio/best"
+                else:
+                    bitrate = "192"
+                    if format_id and format_id.startswith("audio-mp3-"):
+                        bitrate = format_id.replace("audio-mp3-", "")
                     opts["format"] = "bestaudio/best"
                     opts["postprocessors"] = [{
                         "key": "FFmpegExtractAudio",
                         "preferredcodec": "mp3",
-                        "preferredquality": "192",
+                        "preferredquality": bitrate,
                     }]
-                else:
-                    opts["format"] = "bestaudio[ext=m4a]/bestaudio/best"
             else:
                 if format_id and format_id != "best":
-                    if has_ffmpeg:
-                        opts["format"] = f"{format_id}+bestaudio/best"
+                    if format_id.startswith("video-"):
+                        h = format_id.replace("video-", "").replace("p", "")
+                        opts["format"] = (
+                            f"bestvideo[height<={h}][ext=mp4]+bestaudio[ext=m4a]/"
+                            f"bestvideo[height<={h}]+bestaudio/"
+                            f"best[height<={h}][ext=mp4]/"
+                            f"best[height<={h}]/best"
+                        )
                     else:
-                        opts["format"] = f"{format_id}/best[vcodec!=none][acodec!=none]/best"
+                        opts["format"] = f"{format_id}+bestaudio[ext=m4a]/{format_id}+bestaudio/{format_id}/best"
                 else:
-                    if has_ffmpeg:
-                        opts["format"] = "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best"
-                    else:
-                        opts["format"] = "best[ext=mp4]/best[vcodec!=none][acodec!=none]/best"
+                    opts["format"] = "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best"
 
             with yt_dlp.YoutubeDL(opts) as ydl:
                 info = ydl.extract_info(url, download=True)
@@ -238,11 +295,16 @@ class YTClient:
 
                 # Locate the downloaded file
                 target_filename = ydl.prepare_filename(info)
-
-                # If postprocessed (e.g. mp3 conversion), the extension might have changed
                 expected_path = Path(target_filename)
-                if is_audio and has_ffmpeg:
-                    expected_path = expected_path.with_suffix(".mp3")
+
+                # If postprocessed (e.g. mp3 conversion or mp4 remux)
+                if is_audio:
+                    if format_id == "audio-m4a" or not has_ffmpeg:
+                        expected_path = expected_path.with_suffix(".m4a")
+                    else:
+                        expected_path = expected_path.with_suffix(".mp3")
+                elif has_ffmpeg:
+                    expected_path = expected_path.with_suffix(".mp4")
 
                 # If not found directly, check by prefix in TEMP_DIR
                 if not expected_path.exists():
