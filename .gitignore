@@ -55,6 +55,8 @@ temp_downloads/
 *.cookie.txt
 cookies.txt
 *.log
+bin/*.exe
+bin/*.dll
 
 # Node & Frontend Build
 node_modules/

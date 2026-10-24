@@ -35,12 +35,33 @@ class Settings:
 
     @property
     def ffmpeg_location(self) -> str | None:
-        """Find FFmpeg binary from FFMPEG_PATH environment variable or system PATH."""
+        """Find FFmpeg binary from FFMPEG_PATH environment variable, project bin, system PATH, or common locations."""
         custom_path = os.getenv("FFMPEG_PATH")
         if custom_path and os.path.exists(custom_path):
             return custom_path
 
-        return shutil.which("ffmpeg")
+        # 1. Check project-local bin directory
+        local_bin_exe = self.BASE_DIR / "bin" / ("ffmpeg.exe" if os.name == "nt" else "ffmpeg")
+        if local_bin_exe.exists():
+            return str(local_bin_exe)
+
+        # 2. Check system PATH
+        path_binary = shutil.which("ffmpeg")
+        if path_binary:
+            return path_binary
+
+        # 3. Common Windows fallback paths
+        if os.name == "nt":
+            common_paths = [
+                r"C:\Program Files (x86)\FormatFactory\FFModules\Encoder\ffmpeg.exe",
+                r"C:\Program Files\ffmpeg\bin\ffmpeg.exe",
+                r"C:\ffmpeg\bin\ffmpeg.exe",
+            ]
+            for p in common_paths:
+                if os.path.exists(p):
+                    return p
+
+        return None
 
 
 settings = Settings()
