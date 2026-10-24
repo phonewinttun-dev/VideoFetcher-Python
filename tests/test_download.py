@@ -50,6 +50,30 @@ def test_download_get_shortcut_success(client: TestClient) -> None:
         assert not temp_file.exists()
 
 
+def test_download_post_audio_bitrate_selection(client: TestClient) -> None:
+    temp_file = settings.TEMP_DIR / "test_run_audio_320.mp3"
+    temp_file.write_bytes(b"high quality 320k mp3 bytes")
+
+    with patch(
+        "app.core.yt_client.yt_client.download_media",
+        return_value=(temp_file, "Audio 320k.mp3"),
+    ) as mock_dl:
+        resp = client.post(
+            "/api/download",
+            json={
+                "url": "https://www.youtube.com/watch?v=123",
+                "format_id": "audio-mp3-320",
+                "is_audio": True,
+            },
+        )
+        assert resp.status_code == 200
+        assert resp.content == b"high quality 320k mp3 bytes"
+        assert 'attachment; filename="Audio 320k.mp3"' in resp.headers["content-disposition"]
+        assert mock_dl.call_args[1]["format_id"] == "audio-mp3-320"
+        assert mock_dl.call_args[1]["is_audio"] is True
+        assert not temp_file.exists()
+
+
 def test_download_invalid_url(client: TestClient) -> None:
     resp = client.post(
         "/api/download",
