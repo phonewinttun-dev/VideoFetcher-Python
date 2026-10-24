@@ -135,10 +135,19 @@ def test_extract_metadata_video_resolution_and_audio_tiers(
 
     # Audio options
     assert "audio-m4a" in format_ids
+    audio_formats = [f for f in formats if f["is_audio"]]
+    for af in audio_formats:
+        assert af["filesize_approx"] is not None
+        assert af["filesize_approx"] > 0
+
     if client.ffmpeg_location:
         assert "audio-mp3-320" in format_ids
         assert "audio-mp3-192" in format_ids
         assert "audio-mp3-128" in format_ids
+
+        # Check MP3 sizes follow bitrate ordering (320 > 192 > 128)
+        mp3_sizes = {f["format_id"]: f["filesize_approx"] for f in audio_formats}
+        assert mp3_sizes["audio-mp3-320"] > mp3_sizes["audio-mp3-192"] > mp3_sizes["audio-mp3-128"]
 
 
 @patch("yt_dlp.YoutubeDL")
@@ -304,3 +313,57 @@ def test_format_metadata_float_duration() -> None:
     result = client._format_metadata(info)
     assert isinstance(result["duration"], int)
     assert result["duration"] == 214
+
+
+def test_audio_filesize_approx_calculation() -> None:
+    client = YTClient()
+    # Case 1: Formats with exact audio filesize
+    info_with_audio_streams = {
+        "id": "test_audio_sizes",
+        "title": "Audio Sizing Test",
+        "duration": 60,
+        "extractor": "youtube",
+        "formats": [
+            {
+                "format_id": "140",
+                "ext": "m4a",
+                "vcodec": "none",
+                "acodec": "mp4a.40.2",
+                "abr": 128,
+                "filesize": 960000,
+            },
+            {
+                "format_id": "251",
+                "ext": "webm",
+                "vcodec": "none",
+                "acodec": "opus",
+                "abr": 160,
+                "filesize": 1200000,
+            },
+        ],
+    }
+    res1 = client._format_metadata(info_with_audio_streams)
+    audio_map1 = {f["format_id"]: f["filesize_approx"] for f in res1["formats"] if f["is_audio"]}
+
+    # M4A should preserve the stream's exact filesize
+    assert audio_map1["audio-m4a"] == 960000
+    if client.ffmpeg_location:
+        # MP3 320 kbps: 60s * 320 * 1000 / 8 = 2,400,000
+        assert audio_map1["audio-mp3-320"] == 2400000
+        # MP3 192 kbps: 60s * 192 * 1000 / 8 = 1,440,000
+        assert audio_map1["audio-mp3-192"] == 1440000
+        # MP3 128 kbps: 60s * 128 * 1000 / 8 = 960,000
+        assert audio_map1["audio-mp3-128"] == 960000
+
+    # Case 2: Zero duration media (e.g. live stream or unknown duration)
+    info_zero_dur = {
+        "id": "zero_dur",
+        "title": "Live Stream",
+        "duration": 0,
+        "extractor": "youtube",
+        "formats": [],
+    }
+    res2 = client._format_metadata(info_zero_dur)
+    for f in res2["formats"]:
+        if f["is_audio"]:
+            assert f["filesize_approx"] is None

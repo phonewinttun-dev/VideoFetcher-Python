@@ -301,12 +301,44 @@ class YTClient:
             })
 
         # Audio-only options (Multiple quality choices)
+        audio_streams = [
+            f for f in raw_formats
+            if f.get("vcodec") == "none" and (f.get("acodec") != "none" or f.get("abr") or f.get("filesize"))
+        ]
+        m4a_streams = [f for f in audio_streams if f.get("ext") == "m4a"]
+        target_m4a = (
+            max(m4a_streams, key=lambda f: f.get("abr") or f.get("tbr") or f.get("filesize") or 0)
+            if m4a_streams
+            else (
+                max(audio_streams, key=lambda f: f.get("abr") or f.get("tbr") or f.get("filesize") or 0)
+                if audio_streams
+                else None
+            )
+        )
+
+        m4a_size = None
+        if target_m4a:
+            m4a_size = target_m4a.get("filesize") or target_m4a.get("filesize_approx")
+            if not m4a_size and duration > 0 and (target_m4a.get("abr") or target_m4a.get("tbr")):
+                bitrate = target_m4a.get("abr") or target_m4a.get("tbr")
+                m4a_size = int(duration * bitrate * 1000 / 8)
+
+        if not m4a_size and duration > 0:
+            m4a_size = int(duration * 128 * 1000 / 8)
+
+        def estimate_mp3_size(bitrate_kbps: int) -> int | None:
+            if duration > 0:
+                return int(duration * bitrate_kbps * 1000 / 8)
+            if m4a_size:
+                return int(m4a_size * (bitrate_kbps / 128))
+            return None
+
         formats_list.append({
             "format_id": "audio-m4a",
             "label": "Best Quality Audio (M4A)",
             "resolution": "Original / High Fidelity",
             "ext": "m4a",
-            "filesize_approx": None,
+            "filesize_approx": m4a_size,
             "is_audio": True,
         })
 
@@ -316,7 +348,7 @@ class YTClient:
                 "label": "Audio (MP3 - High Quality)",
                 "resolution": "320 kbps",
                 "ext": "mp3",
-                "filesize_approx": None,
+                "filesize_approx": estimate_mp3_size(320),
                 "is_audio": True,
             })
             formats_list.append({
@@ -324,7 +356,7 @@ class YTClient:
                 "label": "Audio (MP3 - Standard)",
                 "resolution": "192 kbps",
                 "ext": "mp3",
-                "filesize_approx": None,
+                "filesize_approx": estimate_mp3_size(192),
                 "is_audio": True,
             })
             formats_list.append({
@@ -332,7 +364,7 @@ class YTClient:
                 "label": "Audio (MP3 - Fast / Compact)",
                 "resolution": "128 kbps",
                 "ext": "mp3",
-                "filesize_approx": None,
+                "filesize_approx": estimate_mp3_size(128),
                 "is_audio": True,
             })
 

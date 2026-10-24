@@ -162,9 +162,9 @@
   }
 
   function formatBytes(bytes) {
-    if (!bytes || bytes <= 0) return "Variable size";
-    const sizes = ["B", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    if (!bytes || bytes <= 0 || isNaN(bytes)) return "Variable size";
+    const sizes = ["B", "KB", "MB", "GB", "TB"];
+    const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), sizes.length - 1);
     return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`;
   }
 
