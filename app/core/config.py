@@ -12,6 +12,8 @@ class Settings:
 
     BASE_DIR: Path = Path(__file__).resolve().parent.parent.parent
     TEMP_DIR: Path = Path(os.getenv("TEMP_DIR", str(BASE_DIR / "temp_downloads")))
+    TEMPLATES_DIR: Path = BASE_DIR / "app" / "templates"
+    STATIC_DIR: Path = BASE_DIR / "app" / "static"
 
     MAX_FILE_SIZE_MB: int = int(os.getenv("MAX_FILE_SIZE_MB", "500"))
     DEFAULT_USER_AGENT: str = os.getenv(
@@ -42,5 +44,7 @@ class Settings:
 
 
 settings = Settings()
-# Ensure temp directory exists
+# Ensure directories exist
 settings.TEMP_DIR.mkdir(parents=True, exist_ok=True)
+settings.TEMPLATES_DIR.mkdir(parents=True, exist_ok=True)
+settings.STATIC_DIR.mkdir(parents=True, exist_ok=True)

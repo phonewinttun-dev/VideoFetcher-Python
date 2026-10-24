@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+/* Emil Kowalski Design Tokens & Polish */
+
+/* Tactile button press feedback */
+.btn-press {
+  transition: transform 160ms var(--ease-out), opacity 160ms var(--ease-out), filter 160ms var(--ease-out), background-color 160ms var(--ease-out);
+  will-change: transform;
+}
+
+.btn-press:active {
+  transform: scale(0.97);
+}
+
+/* Natural entrance from scale(0.95), never scale(0) */
+@keyframes scaleEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.scale-enter {
+  animation: scaleEnter 200ms var(--ease-out) forwards;
+  transform-origin: center;
+}
+
+/* Staggered list cascade */
+@keyframes cascadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cascade-item {
+  opacity: 0;
+  animation: cascadeIn 220ms var(--ease-out) forwards;
+}
+
+/* Surface depth with subtle 1px highlight border */
+.surface-card {
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.07);
+}
+
+.surface-card-dark {
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.04);
+}
+
+/* Hover lift restricted to pointer-accurate devices */
+@media (hover: hover) and (pointer: fine) {
+  .hover-lift {
+    transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out);
+  }
+  .hover-lift:hover {
+    transform: translateY(-1px);
+  }
+}
+
+/* Sonner-style interruptible toast transition */
+.toast-item {
+  transition: transform 220ms var(--ease-out), opacity 220ms var(--ease-out);
+}
+
+/* Respect user's reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

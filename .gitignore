@@ -55,3 +55,7 @@ temp_downloads/
 *.cookie.txt
 cookies.txt
 *.log
+
+# Node & Frontend Build
+node_modules/
+package-lock.json
