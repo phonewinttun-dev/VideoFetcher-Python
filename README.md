@@ -45,7 +45,7 @@ Unlike conventional web downloaders that track user submissions, retain download
 
 - **Client-Side Cookie Isolation:** User-provided Netscape cookies are stored exclusively in the browser's local storage and forwarded on a per-request basis. Ephemeral cookie files on the server are unlinked immediately after use.
 - **Immediate Server Cleanup:** Downloads are streamed directly to the client as attachments. Background cleanup tasks immediately delete temporary media files from the server disk.
-- **Resource Efficiency:** Designed to run reliably within low-memory environments (such as 512 MB RAM containers) without process crashes.
+- **Resource Efficiency:** Designed to run reliably within low-memory environments without process crashes.
 
 ---
 

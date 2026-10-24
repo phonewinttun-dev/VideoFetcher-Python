@@ -255,6 +255,39 @@
     renderFormatOptions();
   }
 
+  function updateFormatSelection(newFormatId) {
+    state.selectedFormatId = newFormatId;
+    if (!el.formatsGrid) return;
+
+    const cards = el.formatsGrid.querySelectorAll("button[data-format-id]");
+    cards.forEach((card) => {
+      const isSelected = card.getAttribute("data-format-id") === newFormatId;
+      card.setAttribute("aria-checked", isSelected ? "true" : "false");
+
+      // Apple subtle selection: calm highlight, no harsh white ring, no shifting
+      if (isSelected) {
+        card.className =
+          "btn-press p-3 rounded-xl border text-left flex items-center justify-between transition-colors duration-150 border-white/30 bg-white/[0.08] text-white shadow-2xs";
+      } else {
+        card.className =
+          "btn-press p-3 rounded-xl border text-left flex items-center justify-between transition-colors duration-150 border-white/[0.08] hover:border-white/[0.16] bg-white/[0.02] text-neutral-300";
+      }
+
+      const radio = card.querySelector(".radio-dot");
+      if (radio) {
+        if (isSelected) {
+          radio.className =
+            "radio-dot w-4 h-4 rounded-full border border-white bg-white flex items-center justify-center flex-shrink-0 transition-colors duration-150";
+          radio.innerHTML = '<div class="w-1.5 h-1.5 rounded-full bg-neutral-900"></div>';
+        } else {
+          radio.className =
+            "radio-dot w-4 h-4 rounded-full border border-neutral-600 flex items-center justify-center flex-shrink-0 transition-colors duration-150";
+          radio.innerHTML = "";
+        }
+      }
+    });
+  }
+
   function renderFormatOptions() {
     if (!el.formatsGrid || !state.metadata?.formats) return;
 
@@ -280,18 +313,22 @@
       const isSelected = fmt.format_id === state.selectedFormatId;
       const card = document.createElement("button");
       card.type = "button";
-      // Staggered cascade entrance & Apple Bento card (Dark native)
+      card.setAttribute("data-format-id", fmt.format_id);
+      card.setAttribute("role", "radio");
+      card.setAttribute("aria-checked", isSelected ? "true" : "false");
+
+      // Initial staggered entrance animation
       card.className =
-        "cascade-item btn-press p-3 rounded-xl border text-left flex items-center justify-between transition-all " +
+        "cascade-item btn-press p-3 rounded-xl border text-left flex items-center justify-between transition-colors duration-150 " +
         (isSelected
-          ? "border-white bg-white/[0.08] text-white ring-1 ring-white shadow-2xs"
+          ? "border-white/30 bg-white/[0.08] text-white shadow-2xs"
           : "border-white/[0.08] hover:border-white/[0.16] bg-white/[0.02] text-neutral-300");
 
       card.style.animationDelay = `${index * 35}ms`;
 
       card.innerHTML = `
         <div class="flex items-center gap-2.5 min-w-0">
-          <div class="w-4 h-4 rounded-full border flex items-center justify-center flex-shrink-0 ${
+          <div class="radio-dot w-4 h-4 rounded-full border flex items-center justify-center flex-shrink-0 transition-colors duration-150 ${
             isSelected
               ? "border-white bg-white"
               : "border-neutral-600"
@@ -309,8 +346,7 @@
       `;
 
       card.addEventListener("click", () => {
-        state.selectedFormatId = fmt.format_id;
-        renderFormatOptions();
+        updateFormatSelection(fmt.format_id);
       });
 
       el.formatsGrid.appendChild(card);
