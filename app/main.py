@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
@@ -9,17 +10,32 @@ from app.features.download.router import router as download_router
 from app.features.extract.router import router as extract_router
 from app.features.settings.router import router as settings_router
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: sweep orphaned temp files from previous container sessions
+    if settings.TEMP_DIR.exists():
+        for f in settings.TEMP_DIR.glob("*"):
+            if f.is_file() and not f.name.startswith("."):
+                try:
+                    f.unlink()
+                except OSError:
+                    pass
+    yield
+
+
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
     description="Universal media downloader backend powered by FastAPI & yt-dlp",
+    lifespan=lifespan,
 )
 
-# Enable CORS (configurable via ALLOWED_ORIGINS env var)
+# Enable CORS (allow_credentials=False ensures W3C compliance with wildcard origins)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.ALLOWED_ORIGINS,
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
