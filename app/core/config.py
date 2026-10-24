@@ -41,7 +41,7 @@ class Settings:
             c.strip()
             for c in os.getenv(
                 "YOUTUBE_PLAYER_CLIENTS",
-                "mweb,ios,android,tv_samsung,visionos,web",
+                "default,-tv,web_safari,web_embedded",
             ).split(",")
             if c.strip()
         ]

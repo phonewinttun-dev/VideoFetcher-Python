@@ -61,7 +61,7 @@ def test_ephemeral_cookie_file() -> None:
         assert path is not None
         created_path = Path(path)
         assert created_path.exists()
-        assert created_path.read_text(encoding="utf-8") == content
+        assert "domain\tTRUE\t/\tFALSE\t0\tname\tvalue" in created_path.read_text(encoding="utf-8")
 
     # Should be deleted once context exits
     assert not created_path.exists()
@@ -278,9 +278,17 @@ def test_base_opts_youtube_player_clients_and_proxy() -> None:
     assert "youtube" in opts["extractor_args"]
     assert "player_client" in opts["extractor_args"]["youtube"]
     clients = opts["extractor_args"]["youtube"]["player_client"]
-    assert "mweb" in clients
-    assert "ios" in clients
-    assert "android" in clients
+    assert "default" in clients
+    assert "-tv" in clients
+    assert "web_embedded" in clients
+
+
+def test_normalize_netscape_cookies() -> None:
+    from app.core.yt_client import normalize_netscape_cookies
+    raw = ".youtube.com TRUE / TRUE 1899999999 TEST 123"
+    normalized = normalize_netscape_cookies(raw)
+    assert "# Netscape HTTP Cookie File" in normalized
+    assert ".youtube.com\tTRUE\t/\tTRUE\t1899999999\tTEST\t123" in normalized
 
 
 def test_format_metadata_float_duration() -> None:

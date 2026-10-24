@@ -79,6 +79,40 @@ def validate_url(url: str) -> bool:
         return False
 
 
+def normalize_netscape_cookies(content: str) -> str:
+    """Normalize Netscape cookie text so every entry is strictly tab-delimited for MozillaCookieJar."""
+    if not content:
+        return ""
+    lines = content.splitlines()
+    normalized_lines = []
+    has_header = False
+
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if stripped.startswith("#"):
+            if "Netscape" in stripped:
+                has_header = True
+            normalized_lines.append(stripped)
+            continue
+
+        parts = stripped.split("\t")
+        if len(parts) >= 7:
+            normalized_lines.append("\t".join(parts))
+        else:
+            space_parts = stripped.split(None, 6)
+            if len(space_parts) == 7:
+                normalized_lines.append("\t".join(space_parts))
+            else:
+                normalized_lines.append(stripped)
+
+    result = "\n".join(normalized_lines)
+    if not has_header:
+        result = "# Netscape HTTP Cookie File\n" + result
+    return result + "\n"
+
+
 @contextlib.contextmanager
 def ephemeral_cookie_file(cookie_content: str | None) -> Generator[str | None, None, None]:
     """
@@ -89,10 +123,11 @@ def ephemeral_cookie_file(cookie_content: str | None) -> Generator[str | None, N
         yield None
         return
 
+    normalized = normalize_netscape_cookies(cookie_content)
     cookie_path = settings.TEMP_DIR / f"cookie_{uuid.uuid4().hex}.txt"
     try:
         with open(cookie_path, "w", encoding="utf-8") as f:
-            f.write(cookie_content)
+            f.write(normalized)
         yield str(cookie_path)
     finally:
         if cookie_path.exists():

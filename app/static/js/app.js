@@ -41,6 +41,7 @@
     settingsModal: document.getElementById("settings-modal"),
     settingsOpenBtn: document.getElementById("settings-open-btn"),
     settingsCloseBtn: document.getElementById("settings-close-btn"),
+    settingsDoneBtn: document.getElementById("settings-done-btn"),
     cookiesInput: document.getElementById("cookies-input"),
     cookiesFile: document.getElementById("cookies-file"),
     cookiesUploadBtn: document.getElementById("cookies-upload-btn"),
@@ -551,6 +552,13 @@
       el.settingsModal?.classList.add("hidden");
     });
 
+    el.settingsDoneBtn?.addEventListener("click", () => {
+      el.settingsModal?.classList.add("hidden");
+      if (el.urlInput?.value?.trim()) {
+        triggerExtract();
+      }
+    });
+
     el.settingsModal?.addEventListener("click", (e) => {
       if (e.target === el.settingsModal) {
         el.settingsModal.classList.add("hidden");
@@ -631,7 +639,15 @@
         localStorage.setItem("vf_cookies", raw);
         el.cookiesStatus.textContent = data.message;
         el.cookiesStatus.classList.remove("hidden");
-        showToast(`Saved ${data.entries_count} cookies for ${data.domains.join(", ")}`, "success", 3000);
+        showToast(`Saved ${data.entries_count} cookies! Ready to download.`, "success", 3000);
+
+        // Auto-close modal and immediately proceed to download if URL was already pasted
+        setTimeout(() => {
+          el.settingsModal?.classList.add("hidden");
+          if (el.urlInput?.value?.trim()) {
+            triggerExtract();
+          }
+        }, 1200);
       } else {
         showToast(data.message || "Invalid Netscape cookie format", "error", 3500);
       }
