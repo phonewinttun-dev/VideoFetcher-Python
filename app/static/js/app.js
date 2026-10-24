@@ -473,9 +473,40 @@
       }
 
       const blob = await resp.blob();
-      const objectUrl = window.URL.createObjectURL(blob);
 
-      // Trigger standard browser download / iOS Files app dialog
+      // iOS Safari Integration: Use Web Share API so users can tap "Save Video" directly to Photos/Gallery
+      const isIOS =
+        /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+      const mimeType =
+        blob.type && blob.type !== "application/octet-stream"
+          ? blob.type
+          : filename.endsWith(".mp3")
+          ? "audio/mpeg"
+          : filename.endsWith(".m4a")
+          ? "audio/mp4"
+          : "video/mp4";
+
+      const file = new File([blob], filename, { type: mimeType });
+
+      if (isIOS && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: filename,
+          });
+          showToast("Saved! Tap 'Save Video' to add to Photos.", "success", 4500);
+          return;
+        } catch (shareErr) {
+          // If user cancelled the share sheet, return quietly without error
+          if (shareErr.name === "AbortError") return;
+          // Otherwise fall back to standard download below
+        }
+      }
+
+      // Standard fallback browser download / Files app
+      const objectUrl = window.URL.createObjectURL(blob);
       const tempLink = document.createElement("a");
       tempLink.href = objectUrl;
       tempLink.download = filename;
@@ -486,7 +517,11 @@
       // Clean up object URL
       setTimeout(() => window.URL.revokeObjectURL(objectUrl), 1000);
 
-      showToast(`Downloaded: ${filename}`, "success", 4000);
+      if (isIOS) {
+        showToast(`Saved to Files app. In Files, tap Share ➔ 'Save Video' to add to Photos.`, "success", 6000);
+      } else {
+        showToast(`Downloaded: ${filename}`, "success", 4000);
+      }
     } catch (err) {
       showToast(err.message || "Download failed", "error", 4000);
     } finally {

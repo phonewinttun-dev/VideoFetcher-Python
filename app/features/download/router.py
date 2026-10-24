@@ -44,10 +44,23 @@ def build_file_response(
         "Access-Control-Expose-Headers": "Content-Disposition",
     }
 
+    # Proper media type ensures iOS and Android detect video/audio for Gallery saving
+    ext = file_path.suffix.lower()
+    media_type_map = {
+        ".mp4": "video/mp4",
+        ".webm": "video/webm",
+        ".mkv": "video/x-matroska",
+        ".mp3": "audio/mpeg",
+        ".m4a": "audio/mp4",
+        ".opus": "audio/opus",
+        ".wav": "audio/wav",
+    }
+    media_type = media_type_map.get(ext, "application/octet-stream")
+
     return FileResponse(
         path=str(file_path),
         filename=display_filename,
-        media_type="application/octet-stream",
+        media_type=media_type,
         headers=headers,
         background=background_tasks,
     )
