@@ -267,6 +267,9 @@ class YTClient:
             # If no FFmpeg, skip formats without audio
             if not has_ffmpeg and f.get("acodec") == "none":
                 continue
+            # Skip YouTube Premium formats (require paid account authentication)
+            if "Premium" in str(f.get("format_note", "")):
+                continue
             # Keep format with file size info or first found
             if height not in available_heights or f.get("filesize") or f.get("filesize_approx"):
                 available_heights[height] = f
@@ -386,10 +389,11 @@ class YTClient:
                     if format_id.startswith("video-"):
                         h = format_id.replace("video-", "").replace("p", "")
                         opts["format"] = (
-                            f"bestvideo*[height<={h}][ext=mp4]+bestaudio[ext=m4a]/"
-                            f"bestvideo*[height<={h}]+bestaudio/"
-                            f"best[height<={h}][ext=mp4]/"
-                            f"best[height<={h}]/"
+                            f"bestvideo*[format_note!*=Premium][height<={h}][ext=mp4]+bestaudio[ext=m4a]/"
+                            f"bestvideo*[format_note!*=Premium][height<={h}]+bestaudio/"
+                            f"best[format_note!*=Premium][height<={h}][ext=mp4]/"
+                            f"best[format_note!*=Premium][height<={h}]/"
+                            f"bestvideo*[format_note!*=Premium]+bestaudio/"
                             f"bestvideo*+bestaudio/best"
                         )
                     else:
@@ -397,12 +401,14 @@ class YTClient:
                             f"{format_id}+bestaudio[ext=m4a]/"
                             f"{format_id}+bestaudio/"
                             f"{format_id}/"
+                            f"bestvideo*[format_note!*=Premium]+bestaudio/"
                             f"bestvideo*+bestaudio/best"
                         )
                 else:
                     opts["format"] = (
+                        "bestvideo*[format_note!*=Premium][ext=mp4]+bestaudio[ext=m4a]/"
+                        "bestvideo*[format_note!*=Premium]+bestaudio/"
                         "bestvideo*[ext=mp4]+bestaudio[ext=m4a]/"
-                        "bestvideo*+bestaudio/"
                         "bestvideo*+bestaudio/best"
                     )
 

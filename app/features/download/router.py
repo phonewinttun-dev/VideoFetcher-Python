@@ -75,7 +75,7 @@ def download_media_post(
     Download media based on JSON payload and stream it directly as an attachment.
     Auto-cleans the temporary server file upon completion.
     """
-    if not DOWNLOAD_SEMAPHORE.acquire(blocking=False):
+    if not DOWNLOAD_SEMAPHORE.acquire(blocking=True, timeout=8.0):
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Server is currently processing other downloads. Please try again shortly.",
@@ -122,7 +122,7 @@ def download_media_get(
     """
     effective_is_audio = is_audio or (type is not None and type.lower() == "audio")
 
-    if not DOWNLOAD_SEMAPHORE.acquire(blocking=False):
+    if not DOWNLOAD_SEMAPHORE.acquire(blocking=True, timeout=8.0):
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Server is currently processing other downloads. Please try again shortly.",
