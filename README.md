@@ -9,7 +9,6 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![yt-dlp](https://img.shields.io/badge/Powered_by-yt--dlp-red?style=for-the-badge)](https://github.com/yt-dlp/yt-dlp)
-[![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![PWA Ready](https://img.shields.io/badge/PWA-Ready-5A0FC8?style=for-the-badge&logo=pwa)](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
@@ -55,15 +54,8 @@ Unlike conventional web downloaders that track user submissions, retain download
 - **Multi-Platform Media Extraction:** Supports video and audio extraction from YouTube, TikTok, Instagram, Facebook, X (Twitter), and hundreds of other sites supported by yt-dlp.
 - **In-Process Python Integration:** Direct programmatic integration with `yt-dlp` eliminates shell subprocess overhead, yielding faster response times and reliable error handling.
 - **Progressive Web App (PWA):** Installs cleanly on iOS (via Safari Add to Home Screen) and desktop platforms with full-screen standalone display mode.
-- **Emil Kowalski Design Engineering:**
-  - Tactile button press feedback scaling to 0.97 on click.
-  - Natural component entry transitions starting from scale 0.95 and opacity 0.
-  - Staggered cascade animations for available format options.
-  - Non-blocking, interruptible floating toast notifications.
-  - Dark mode surface depth with subtle 1px border highlights.
 - **Direct iOS Shortcuts Integration:** URL query parameters (`?url=...&type=video`) allow one-tap downloads directly from the iOS Share Sheet.
 - **Format and Quality Selection:** Seamless toggle between Video (MP4) with granular resolution choices (1080p, 720p, 480p, 360p) and Audio-Only (MP3 / M4A).
-- **Standalone CSS:** Precompiled, minified Tailwind CSS bundle requiring zero Node.js runtime processes in production.
 
 ---
 
@@ -128,12 +120,14 @@ VideoFetcher-Python/
 ### Installation
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/<your-username>/VideoFetcher-Python.git
    cd VideoFetcher-Python
    ```
 
 2. Create and activate a virtual environment:
+
    ```bash
    # Windows (PowerShell)
    python -m venv .venv
@@ -145,11 +139,13 @@ VideoFetcher-Python/
    ```
 
 3. Install required Python packages:
+
    ```bash
    pip install -r requirements.txt
    ```
 
 4. Start the application:
+
    ```bash
    uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
    ```
@@ -166,34 +162,35 @@ Copy `.env.example` to create your local `.env` file:
 cp .env.example .env
 ```
 
-| Variable | Description | Default |
-| --- | --- | --- |
-| `DEBUG` | Enable debug mode | `false` |
-| `TEMP_DIR` | Directory for temporary downloads and cookies | `./temp_downloads` |
-| `FFMPEG_PATH` | Path to custom FFmpeg binary | Auto-detected from PATH |
-| `MAX_FILE_SIZE_MB` | Maximum permitted download size | `500` |
-| `ALLOWED_ORIGINS` | CORS allowed origins (comma-separated) | `*` |
-| `DEFAULT_USER_AGENT` | Default User-Agent header string | Standard Chrome desktop UA |
+| Variable             | Description                                   | Default                    |
+| -------------------- | --------------------------------------------- | -------------------------- |
+| `DEBUG`              | Enable debug mode                             | `false`                    |
+| `TEMP_DIR`           | Directory for temporary downloads and cookies | `./temp_downloads`         |
+| `FFMPEG_PATH`        | Path to custom FFmpeg binary                  | Auto-detected from PATH    |
+| `MAX_FILE_SIZE_MB`   | Maximum permitted download size               | `500`                      |
+| `ALLOWED_ORIGINS`    | CORS allowed origins (comma-separated)        | `*`                        |
+| `DEFAULT_USER_AGENT` | Default User-Agent header string              | Standard Chrome desktop UA |
 
 ---
 
 ## API Reference
 
 FastAPI provides interactive documentation out of the box:
+
 - Swagger UI: `http://127.0.0.1:8000/docs`
 - ReDoc: `http://127.0.0.1:8000/redoc`
 
 ### Primary Endpoints
 
-| Method | Route | Description |
-| --- | --- | --- |
-| `GET` | `/` | Renders the web interface using Jinja2 templates |
-| `POST` | `/api/extract` | Validates a URL and extracts media metadata and formats |
-| `POST` | `/api/download` | Initiates media download and returns a streaming attachment |
-| `GET` | `/api/download` | Query-parameter download route for external shortcut triggers |
-| `GET` | `/api/settings/version` | Reports yt-dlp, Python, and FFmpeg detection status |
-| `POST` | `/api/settings/cookies/validate` | Validates Netscape cookie syntax and extracts domain names |
-| `GET` | `/api/health` | Service health status check |
+| Method | Route                            | Description                                                   |
+| ------ | -------------------------------- | ------------------------------------------------------------- |
+| `GET`  | `/`                              | Renders the web interface using Jinja2 templates              |
+| `POST` | `/api/extract`                   | Validates a URL and extracts media metadata and formats       |
+| `POST` | `/api/download`                  | Initiates media download and returns a streaming attachment   |
+| `GET`  | `/api/download`                  | Query-parameter download route for external shortcut triggers |
+| `GET`  | `/api/settings/version`          | Reports yt-dlp, Python, and FFmpeg detection status           |
+| `POST` | `/api/settings/cookies/validate` | Validates Netscape cookie syntax and extracts domain names    |
+| `GET`  | `/api/health`                    | Service health status check                                   |
 
 ---
 
