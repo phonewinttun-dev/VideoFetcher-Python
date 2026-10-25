@@ -3,6 +3,7 @@ import ipaddress
 import re
 import shutil
 import socket
+import time
 import uuid
 from pathlib import Path
 from typing import Any, Generator
@@ -12,6 +13,10 @@ import yt_dlp
 from yt_dlp.utils import DownloadError, ExtractorError
 
 from app.core.config import settings
+
+# In-memory metadata cache with TTL to eliminate double extraction latency
+_METADATA_CACHE: dict[str, tuple[float, dict[str, Any]]] = {}
+METADATA_CACHE_TTL = 300  # 5 minutes
 
 
 def sanitize_filename(filename: str) -> str:
@@ -152,10 +157,10 @@ class YTClient:
             "quiet": True,
             "no_warnings": True,
             "noplaylist": True,
-            "remote_components": ["ejs:github"],
             "max_filesize": settings.MAX_FILE_SIZE_MB * 1024 * 1024,
             "socket_timeout": 30,
             "concurrent_fragment_downloads": 4,
+            "http_chunk_size": 10485760,
             "extractor_args": {
                 "youtube": {
                     "player_client": list(settings.YOUTUBE_PLAYER_CLIENTS),
@@ -189,8 +194,7 @@ class YTClient:
 
         if self.ffmpeg_location:
             opts["ffmpeg_location"] = self.ffmpeg_location
-            opts["merge_output_format"] = "mp4"
-            opts["remuxvideo"] = "mp4"
+            opts["merge_output_format"] = "mp4/mkv"
         return opts
 
     def extract_metadata(
@@ -207,6 +211,15 @@ class YTClient:
             raise ValueError("Invalid URL format. Please provide a valid HTTP/HTTPS link.")
 
         effective_cookies = cookies or settings.YOUTUBE_COOKIES
+
+        # Check in-memory metadata cache first
+        cache_key = f"{url}:{effective_cookies or ''}:{user_agent or ''}"
+        now = time.time()
+        if cache_key in _METADATA_CACHE:
+            cached_time, cached_data = _METADATA_CACHE[cache_key]
+            if now - cached_time < METADATA_CACHE_TTL:
+                return cached_data
+
         with ephemeral_cookie_file(effective_cookies) as cookie_path:
             opts = self._build_base_opts(cookie_path, user_agent)
             opts["skip_download"] = True
@@ -226,7 +239,15 @@ class YTClient:
         if "entries" in info and info["entries"]:
             info = info["entries"][0]
 
-        return self._format_metadata(info)
+        formatted = self._format_metadata(info)
+
+        # Store in cache and cap size
+        _METADATA_CACHE[cache_key] = (now, formatted)
+        if len(_METADATA_CACHE) > 500:
+            oldest_key = min(_METADATA_CACHE.keys(), key=lambda k: _METADATA_CACHE[k][0])
+            _METADATA_CACHE.pop(oldest_key, None)
+
+        return formatted
 
     def _format_metadata(self, info: dict[str, Any]) -> dict[str, Any]:
         """Format raw yt-dlp info into a clean, client-ready structure."""
@@ -405,18 +426,16 @@ class YTClient:
             has_ffmpeg = bool(self.ffmpeg_location)
 
             if is_audio:
-                if format_id == "audio-m4a" or not has_ffmpeg:
-                    opts["format"] = "bestaudio[ext=m4a]/bestaudio/best"
-                else:
-                    bitrate = "192"
-                    if format_id and format_id.startswith("audio-mp3-"):
-                        bitrate = format_id.replace("audio-mp3-", "")
+                if (format_id and format_id.startswith("audio-mp3-")) and has_ffmpeg:
+                    bitrate = format_id.replace("audio-mp3-", "") or "192"
                     opts["format"] = "bestaudio/best"
                     opts["postprocessors"] = [{
                         "key": "FFmpegExtractAudio",
                         "preferredcodec": "mp3",
                         "preferredquality": bitrate,
                     }]
+                else:
+                    opts["format"] = "bestaudio[ext=m4a]/bestaudio/best"
             else:
                 if format_id and format_id != "best":
                     if format_id.startswith("video-"):
@@ -457,10 +476,10 @@ class YTClient:
 
                     # If postprocessed (e.g. mp3 conversion or mp4 remux)
                     if is_audio:
-                        if format_id == "audio-m4a" or not has_ffmpeg:
-                            expected_path = expected_path.with_suffix(".m4a")
-                        else:
+                        if (format_id and format_id.startswith("audio-mp3-")) and has_ffmpeg:
                             expected_path = expected_path.with_suffix(".mp3")
+                        else:
+                            expected_path = expected_path.with_suffix(".m4a")
                     elif has_ffmpeg:
                         expected_path = expected_path.with_suffix(".mp4")
 

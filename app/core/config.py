@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 
-@dataclass(frozen=True)
+@dataclass
 class Settings:
     APP_NAME: str = "VideoFetcher"
     APP_VERSION: str = "1.0.0"
@@ -16,6 +16,7 @@ class Settings:
     STATIC_DIR: Path = BASE_DIR / "app" / "static"
 
     MAX_FILE_SIZE_MB: int = int(os.getenv("MAX_FILE_SIZE_MB", "300"))
+    MAX_CONCURRENT_DOWNLOADS: int = int(os.getenv("MAX_CONCURRENT_DOWNLOADS", "3"))
     DEFAULT_USER_AGENT: str = os.getenv("DEFAULT_USER_AGENT", "")
 
     # Proxy configuration (bypasses datacenter IP blocking on cloud platforms like Render / AWS)
@@ -41,7 +42,7 @@ class Settings:
             c.strip()
             for c in os.getenv(
                 "YOUTUBE_PLAYER_CLIENTS",
-                "android,default,-tv,web_safari,web_embedded",
+                "android,web",
             ).split(",")
             if c.strip()
         ]

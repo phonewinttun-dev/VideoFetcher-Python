@@ -5,10 +5,10 @@ def test_get_version(client: TestClient) -> None:
     resp = client.get("/api/settings/version")
     assert resp.status_code == 200
     data = resp.json()
-    assert "app_name" in data
-    assert "ytdlp_version" in data
-    assert "python_version" in data
-    assert "ffmpeg_available" in data
+    assert data["app_name"] == "VideoFetcher"
+    assert isinstance(data["ytdlp_version"], str) and len(data["ytdlp_version"]) > 0
+    assert isinstance(data["python_version"], str) and len(data["python_version"]) > 0
+    assert isinstance(data["ffmpeg_available"], bool)
 
 
 def test_validate_cookies_valid(client: TestClient, valid_netscape_cookie: str) -> None:

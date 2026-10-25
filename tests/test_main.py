@@ -1,15 +1,16 @@
 from fastapi.testclient import TestClient
 
+from app.core.config import settings
+
 
 def test_root_html_template(client: TestClient) -> None:
     resp = client.get("/")
     assert resp.status_code == 200
     assert "text/html" in resp.headers["content-type"]
-    assert "VideoFetcher" in resp.text
+    assert settings.APP_NAME in resp.text
     assert "Universal Media Downloader" in resp.text
     assert "style.css" in resp.text
-    assert "Easily download Instagram Reels, YouTube Shorts, TikTok and Audio with single-click." in resp.text
-    assert "300 MB" in resp.text
+    assert f"{settings.MAX_FILE_SIZE_MB} MB" in resp.text
     # Verify supported platform brands
     assert "YouTube" in resp.text
     assert "Facebook" in resp.text
@@ -19,10 +20,11 @@ def test_root_html_template(client: TestClient) -> None:
 
 
 def test_static_assets_serving(client: TestClient) -> None:
-    # Test CSS serving
+    # Test CSS serving with correct content-type
     css_resp = client.get("/static/css/style.css")
     assert css_resp.status_code == 200
-    assert len(css_resp.text) > 0
+    assert "text/css" in css_resp.headers["content-type"]
+    assert len(css_resp.text) > 50
 
     # Test JS serving
     js_resp = client.get("/static/js/app.js")

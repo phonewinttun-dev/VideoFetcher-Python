@@ -1,13 +1,14 @@
 from pathlib import Path
 from unittest.mock import patch
+import pytest
 from fastapi.testclient import TestClient
 
 from app.core.config import settings
 
 
-def test_download_post_success(client: TestClient) -> None:
-    # Create a real test file in TEMP_DIR
-    temp_file = settings.TEMP_DIR / "test_run_post.mp4"
+def test_download_post_success(client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(settings, "TEMP_DIR", tmp_path)
+    temp_file = tmp_path / "test_run_post.mp4"
     temp_file.write_bytes(b"sample video bytes")
 
     with patch(
@@ -30,8 +31,9 @@ def test_download_post_success(client: TestClient) -> None:
         assert not temp_file.exists()
 
 
-def test_download_get_shortcut_success(client: TestClient) -> None:
-    temp_file = settings.TEMP_DIR / "test_run_get.mp3"
+def test_download_get_shortcut_success(client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(settings, "TEMP_DIR", tmp_path)
+    temp_file = tmp_path / "test_run_get.mp3"
     temp_file.write_bytes(b"sample audio bytes")
 
     with patch(
@@ -50,8 +52,9 @@ def test_download_get_shortcut_success(client: TestClient) -> None:
         assert not temp_file.exists()
 
 
-def test_download_post_audio_bitrate_selection(client: TestClient) -> None:
-    temp_file = settings.TEMP_DIR / "test_run_audio_320.mp3"
+def test_download_post_audio_bitrate_selection(client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(settings, "TEMP_DIR", tmp_path)
+    temp_file = tmp_path / "test_run_audio_320.mp3"
     temp_file.write_bytes(b"high quality 320k mp3 bytes")
 
     with patch(
@@ -93,17 +96,13 @@ def test_download_ssrf_url_rejected(client: TestClient) -> None:
 
 
 def test_download_concurrency_throttle(client: TestClient) -> None:
-    from app.features.download.router import DOWNLOAD_SEMAPHORE
+    from app.features.download import router
 
-    # Acquire the single slot to simulate an active ongoing download
-    DOWNLOAD_SEMAPHORE.acquire()
-
-    try:
+    # Mock semaphore acquisition failure to instantly verify 429 without sleeping 8 seconds
+    with patch.object(router.DOWNLOAD_SEMAPHORE, "acquire", return_value=False):
         resp = client.post(
             "/api/download",
             json={"url": "https://www.youtube.com/watch?v=123"},
         )
         assert resp.status_code == 429
         assert "Server is currently processing other downloads" in resp.json()["detail"]
-    finally:
-        DOWNLOAD_SEMAPHORE.release()

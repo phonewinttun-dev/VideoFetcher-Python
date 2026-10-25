@@ -7,14 +7,15 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, status
 from fastapi.responses import FileResponse
 from yt_dlp.utils import DownloadError, ExtractorError
 
+from app.core.config import settings
 from app.core.yt_client import yt_client
 from app.features.download.schemas import DownloadRequest
 from app.features.extract.router import format_extractor_error
 
 router = APIRouter(prefix="/api/download", tags=["Download"])
 
-# Restrict to strictly 1 active download at a time to prevent CPU spikes and Out-Of-Memory (OOM) crashes on Render Free Tier (512MB RAM)
-DOWNLOAD_SEMAPHORE = threading.BoundedSemaphore(1)
+# Configurable semaphore prevents CPU/memory starvation while allowing parallel downloads
+DOWNLOAD_SEMAPHORE = threading.BoundedSemaphore(settings.MAX_CONCURRENT_DOWNLOADS)
 
 
 def cleanup_temp_file(file_path: str) -> None:

@@ -75,6 +75,9 @@ def test_extract_metadata_invalid_url() -> None:
 
 @patch("yt_dlp.YoutubeDL")
 def test_extract_metadata_success(mock_ydl_class: MagicMock, sample_metadata: dict) -> None:
+    from app.core.yt_client import _METADATA_CACHE
+    _METADATA_CACHE.clear()
+
     mock_instance = MagicMock()
     mock_instance.extract_info.return_value = sample_metadata
     mock_ydl_class.return_value.__enter__.return_value = mock_instance
@@ -91,33 +94,39 @@ def test_extract_metadata_success(mock_ydl_class: MagicMock, sample_metadata: di
     assert any(f["is_audio"] for f in result["formats"])
 
 
-def test_base_opts_youtube_bot_bypass_and_mp4() -> None:
+@pytest.mark.parametrize("has_ffmpeg", [True, False])
+def test_base_opts_youtube_bot_bypass_and_mp4(has_ffmpeg: bool) -> None:
     client = YTClient()
-    opts = client._build_base_opts()
+    with patch.object(client, "ffmpeg_location", "/mock/ffmpeg" if has_ffmpeg else None):
+        opts = client._build_base_opts()
 
-    # YouTube JS challenge and signature solving options
-    assert "remote_components" in opts
-    assert "ejs:github" in opts["remote_components"]
+        # File size limit, socket timeout, and HTTP chunk size for throughput
+        assert opts["max_filesize"] == settings.MAX_FILE_SIZE_MB * 1024 * 1024
+        assert opts["socket_timeout"] == 30
+        assert opts["http_chunk_size"] == 10485760
 
-    # File size limit and socket timeout for Render stability
-    assert opts["max_filesize"] == settings.MAX_FILE_SIZE_MB * 1024 * 1024
-    assert opts["socket_timeout"] == 30
-
-    # MP4 Output Enforcement when FFmpeg is present
-    if client.ffmpeg_location:
-        assert opts.get("merge_output_format") == "mp4"
-        assert opts.get("remuxvideo") == "mp4"
+        # Safe container format when FFmpeg is present
+        if has_ffmpeg:
+            assert opts.get("merge_output_format") == "mp4/mkv"
+            assert "remuxvideo" not in opts
+        else:
+            assert "merge_output_format" not in opts
+            assert "remuxvideo" not in opts
 
 
 @patch("yt_dlp.YoutubeDL")
 def test_extract_metadata_video_resolution_and_audio_tiers(
     mock_ydl_class: MagicMock, sample_metadata: dict
 ) -> None:
+    from app.core.yt_client import _METADATA_CACHE
+    _METADATA_CACHE.clear()
+
     mock_instance = MagicMock()
     mock_instance.extract_info.return_value = sample_metadata
     mock_ydl_class.return_value.__enter__.return_value = mock_instance
 
     client = YTClient()
+    client.ffmpeg_location = "/mock/ffmpeg"  # Deterministic FFmpeg presence
     result = client.extract_metadata("https://youtube.com/watch?v=123")
 
     formats = result["formats"]
@@ -140,20 +149,22 @@ def test_extract_metadata_video_resolution_and_audio_tiers(
         assert af["filesize_approx"] is not None
         assert af["filesize_approx"] > 0
 
-    if client.ffmpeg_location:
-        assert "audio-mp3-320" in format_ids
-        assert "audio-mp3-192" in format_ids
-        assert "audio-mp3-128" in format_ids
+    assert "audio-mp3-320" in format_ids
+    assert "audio-mp3-192" in format_ids
+    assert "audio-mp3-128" in format_ids
 
-        # Check MP3 sizes follow bitrate ordering (320 > 192 > 128)
-        mp3_sizes = {f["format_id"]: f["filesize_approx"] for f in audio_formats}
-        assert mp3_sizes["audio-mp3-320"] > mp3_sizes["audio-mp3-192"] > mp3_sizes["audio-mp3-128"]
+    # Check MP3 sizes follow bitrate ordering (320 > 192 > 128)
+    mp3_sizes = {f["format_id"]: f["filesize_approx"] for f in audio_formats}
+    assert mp3_sizes["audio-mp3-320"] > mp3_sizes["audio-mp3-192"] > mp3_sizes["audio-mp3-128"]
 
 
 @patch("yt_dlp.YoutubeDL")
-def test_download_media_video_resolution(mock_ydl_class: MagicMock) -> None:
+def test_download_media_video_resolution(
+    mock_ydl_class: MagicMock, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(settings, "TEMP_DIR", tmp_path)
     mock_instance = MagicMock()
-    dummy_file = settings.TEMP_DIR / "test_download_720p.mp4"
+    dummy_file = tmp_path / "test_download_720p.mp4"
     dummy_file.write_text("dummy 720p video content")
 
     mock_instance.extract_info.return_value = {
@@ -175,14 +186,14 @@ def test_download_media_video_resolution(mock_ydl_class: MagicMock) -> None:
     assert "height<=720" in called_opts["format"]
     assert display_name == "720p Video.mp4"
 
-    if dummy_file.exists():
-        dummy_file.unlink()
-
 
 @patch("yt_dlp.YoutubeDL")
-def test_download_media_audio_bitrate_selection(mock_ydl_class: MagicMock) -> None:
+def test_download_media_audio_bitrate_selection(
+    mock_ydl_class: MagicMock, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(settings, "TEMP_DIR", tmp_path)
     mock_instance = MagicMock()
-    dummy_file = settings.TEMP_DIR / "test_audio_320.mp3"
+    dummy_file = tmp_path / "test_audio_320.mp3"
     dummy_file.write_text("dummy 320k mp3 content")
 
     mock_instance.extract_info.return_value = {
@@ -205,14 +216,14 @@ def test_download_media_audio_bitrate_selection(mock_ydl_class: MagicMock) -> No
     assert called_opts["postprocessors"][0]["preferredcodec"] == "mp3"
     assert display_name == "My 320k Audio Track.mp3"
 
-    if dummy_file.exists():
-        dummy_file.unlink()
-
 
 @patch("yt_dlp.YoutubeDL")
-def test_download_media_audio_m4a_selection(mock_ydl_class: MagicMock) -> None:
+def test_download_media_audio_m4a_selection(
+    mock_ydl_class: MagicMock, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(settings, "TEMP_DIR", tmp_path)
     mock_instance = MagicMock()
-    dummy_file = settings.TEMP_DIR / "test_audio_native.m4a"
+    dummy_file = tmp_path / "test_audio_native.m4a"
     dummy_file.write_text("dummy m4a content")
 
     mock_instance.extract_info.return_value = {
@@ -234,12 +245,12 @@ def test_download_media_audio_m4a_selection(mock_ydl_class: MagicMock) -> None:
     assert "postprocessors" not in called_opts
     assert display_name == "Native M4A Audio.m4a"
 
-    if dummy_file.exists():
-        dummy_file.unlink()
-
 
 @patch("yt_dlp.YoutubeDL")
 def test_extract_metadata_download_error(mock_ydl_class: MagicMock) -> None:
+    from app.core.yt_client import _METADATA_CACHE
+    _METADATA_CACHE.clear()
+
     mock_instance = MagicMock()
     mock_instance.extract_info.side_effect = DownloadError("Video is private")
     mock_ydl_class.return_value.__enter__.return_value = mock_instance
@@ -250,10 +261,12 @@ def test_extract_metadata_download_error(mock_ydl_class: MagicMock) -> None:
 
 
 @patch("yt_dlp.YoutubeDL")
-def test_download_media_success(mock_ydl_class: MagicMock) -> None:
+def test_download_media_success(
+    mock_ydl_class: MagicMock, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(settings, "TEMP_DIR", tmp_path)
     mock_instance = MagicMock()
-    # Create an actual dummy temp file
-    dummy_file = settings.TEMP_DIR / "test_download.mp4"
+    dummy_file = tmp_path / "test_download.mp4"
     dummy_file.write_text("dummy media content")
 
     mock_instance.extract_info.return_value = {
@@ -273,10 +286,6 @@ def test_download_media_success(mock_ydl_class: MagicMock) -> None:
     assert file_path.exists()
     assert display_name == "My Downloaded Video.mp4"
 
-    # Cleanup the dummy file
-    if dummy_file.exists():
-        dummy_file.unlink()
-
 
 def test_base_opts_youtube_player_clients_and_proxy() -> None:
     client = YTClient()
@@ -288,9 +297,7 @@ def test_base_opts_youtube_player_clients_and_proxy() -> None:
     assert "player_client" in opts["extractor_args"]["youtube"]
     clients = opts["extractor_args"]["youtube"]["player_client"]
     assert "android" in clients
-    assert "default" in clients
-    assert "-tv" in clients
-    assert "web_embedded" in clients
+    assert "web" in clients
 
 
 def test_normalize_netscape_cookies() -> None:
@@ -342,18 +349,18 @@ def test_audio_filesize_approx_calculation() -> None:
             },
         ],
     }
+    client.ffmpeg_location = "/mock/ffmpeg"  # Deterministic test
     res1 = client._format_metadata(info_with_audio_streams)
     audio_map1 = {f["format_id"]: f["filesize_approx"] for f in res1["formats"] if f["is_audio"]}
 
     # M4A should preserve the stream's exact filesize
     assert audio_map1["audio-m4a"] == 960000
-    if client.ffmpeg_location:
-        # MP3 320 kbps: 60s * 320 * 1000 / 8 = 2,400,000
-        assert audio_map1["audio-mp3-320"] == 2400000
-        # MP3 192 kbps: 60s * 192 * 1000 / 8 = 1,440,000
-        assert audio_map1["audio-mp3-192"] == 1440000
-        # MP3 128 kbps: 60s * 128 * 1000 / 8 = 960,000
-        assert audio_map1["audio-mp3-128"] == 960000
+    # MP3 320 kbps: 60s * 320 * 1000 / 8 = 2,400,000
+    assert audio_map1["audio-mp3-320"] == 2400000
+    # MP3 192 kbps: 60s * 192 * 1000 / 8 = 1,440,000
+    assert audio_map1["audio-mp3-192"] == 1440000
+    # MP3 128 kbps: 60s * 128 * 1000 / 8 = 960,000
+    assert audio_map1["audio-mp3-128"] == 960000
 
     # Case 2: Zero duration media (e.g. live stream or unknown duration)
     info_zero_dur = {
