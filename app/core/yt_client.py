@@ -88,6 +88,11 @@ def normalize_netscape_cookies(content: str) -> str:
     """Normalize Netscape cookie text so every entry is strictly tab-delimited for MozillaCookieJar."""
     if not content:
         return ""
+    # Unescape literal \r\n, \n, and \t from environment variables
+    if "\\n" in content and "\n" not in content:
+        content = content.replace("\\r\\n", "\n").replace("\\n", "\n")
+    if "\\t" in content and "\t" not in content:
+        content = content.replace("\\t", "\t")
     lines = content.splitlines()
     normalized_lines = []
     has_header = False
@@ -228,7 +233,18 @@ class YTClient:
                 try:
                     info = ydl.extract_info(url, download=False)
                 except (DownloadError, ExtractorError) as e:
-                    raise e
+                    if effective_cookies and "requested format is not available" in str(e).lower():
+                        # Rotated/expired cookies often cause empty format lists.
+                        # Fallback to unauthenticated extraction attempt:
+                        try:
+                            clean_opts = self._build_base_opts(None, user_agent)
+                            clean_opts["skip_download"] = True
+                            with yt_dlp.YoutubeDL(clean_opts) as clean_ydl:
+                                info = clean_ydl.extract_info(url, download=False)
+                        except Exception:
+                            raise e
+                    else:
+                        raise e
                 except Exception as e:
                     raise DownloadError(f"Extraction failed: {str(e)}")
 

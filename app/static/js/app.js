@@ -507,6 +507,7 @@
   }
 
   async function triggerDownload() {
+    if (state.isDownloading) return;
     const rawUrl = state.metadata?.webpage_url || el.urlInput?.value?.trim();
     if (!rawUrl) {
       showToast("No active media URL to download", "error");
@@ -600,8 +601,8 @@
       tempLink.click();
       document.body.removeChild(tempLink);
 
-      // Clean up object URL
-      setTimeout(() => window.URL.revokeObjectURL(objectUrl), 1000);
+      // Clean up object URL after 60s so mobile/desktop browsers finish writing to disk without ERR_FILE_NOT_FOUND
+      setTimeout(() => window.URL.revokeObjectURL(objectUrl), 60000);
       setTimeout(hideDownloadModal, 600);
 
       if (isIOS) {
@@ -625,6 +626,7 @@
   function setDownloadLoading(isDownloading) {
     state.isDownloading = isDownloading;
     if (el.downloadBtn) el.downloadBtn.disabled = isDownloading;
+    if (el.extractBtn) el.extractBtn.disabled = isDownloading || state.isLoading;
     if (el.downloadBtnText) el.downloadBtnText.textContent = isDownloading ? "Processing..." : "Download Now";
     if (el.downloadIcon) el.downloadIcon.classList.toggle("hidden", isDownloading);
     if (el.downloadSpinner) el.downloadSpinner.classList.toggle("hidden", !isDownloading);

@@ -25,6 +25,14 @@ def format_extractor_error(err: Exception) -> str:
             "or configure YOUTUBE_COOKIES / PROXY in your server's environment variables."
         )
 
+    if "requested format is not available" in msg_lower:
+        return (
+            "YouTube could not provide formats for this video. "
+            "If you configured YOUTUBE_COOKIES, the session has expired or was rotated by Google. "
+            "To export fresh cookies: Open an Incognito window, login to YouTube, visit youtube.com/robots.txt, "
+            "export cookies with 'Get cookies.txt LOCALLY', and immediately close the window."
+        )
+
     return clean_msg or "Failed to extract media information from this URL."
 
 

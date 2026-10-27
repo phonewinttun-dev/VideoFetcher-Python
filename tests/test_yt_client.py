@@ -296,8 +296,8 @@ def test_base_opts_youtube_player_clients_and_proxy() -> None:
     assert "youtube" in opts["extractor_args"]
     assert "player_client" in opts["extractor_args"]["youtube"]
     clients = opts["extractor_args"]["youtube"]["player_client"]
-    assert "android" in clients
     assert "web" in clients
+    assert "tv_samsung" in clients or "default" in clients
 
 
 def test_normalize_netscape_cookies() -> None:
